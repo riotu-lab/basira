@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Basira background Q&A record",
+  "type": "object",
+  "required": [
+    "id",
+    "tradition",
+    "topic",
+    "question",
+    "answer",
+    "points",
+    "source",
+    "evidence",
+    "evidenceMethod",
+    "extraction",
+    "status",
+    "modelReview",
+    "persona",
+    "personaReview"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{20}$"
+    },
+    "tradition": {
+      "enum": [
+        "hinduism",
+        "christianity",
+        "atheism",
+        "judaism"
+      ]
+    },
+    "topic": {
+      "type": "string"
+    },
+    "question": {
+      "type": "object",
+      "required": [
+        "ar",
+        "en"
+      ],
+      "properties": {
+        "ar": {
+          "type": "string",
+          "minLength": 1
+        },
+        "en": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "answer": {
+      "type": "object",
+      "required": [
+        "ar",
+        "en"
+      ],
+      "properties": {
+        "ar": {
+          "type": "string",
+          "minLength": 1
+        },
+        "en": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "points": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "text"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "object",
+            "required": [
+              "ar",
+              "en"
+            ],
+            "properties": {
+              "ar": {
+                "type": "string",
+                "minLength": 1
+              },
+              "en": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "author",
+        "url",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "locator",
+          "quote"
+        ],
+        "properties": {
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "quote": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "evidenceMethod": {
+      "enum": [
+        "exact_text_match",
+        "openai_vision_unverified_transcription",
+        "assistant_visual_source_check"
+      ]
+    },
+    "status": {
+      "const": "draft_requires_human_review"
+    },
+    "persona": {
+      "type": "object",
+      "required": [
+        "simulated",
+        "background"
+      ],
+      "properties": {
+        "simulated": {
+          "const": true
+        },
+        "background": {
+          "enum": [
+            "hinduism",
+            "christianity",
+            "atheism",
+            "judaism"
+          ]
+        }
+      }
+    },
+    "personaReview": {
+      "type": "object",
+      "required": [
+        "reviewed",
+        "addressee",
+        "speaker"
+      ],
+      "properties": {
+        "reviewed": {
+          "const": true
+        },
+        "addressee": {
+          "const": "muslim_guide"
+        },
+        "speaker": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+# Credentials and machine-local configuration: never upload files, even templates.
+.env
+.env.*
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+.git/
+.vercel/
+.local/
+.aws/
+.codex/
+.agents/
+.vscode/
+.idea/
+
+# Documentation, private requirements, decks, recordings and generated artifacts.
+docs/
+deliverables/
+design/
+artifacts/
+test-results/
+playwright-report/
+blob-report/
+coverage/
+tests/
+*.md
+*.pptx
+*.ppt
+*.pdf
+*.doc
+*.docx
+*.zip
+**/*:Zone.Identifier
+**/*.log
+**/*.sqlite
+**/*.sqlite-wal
+**/*.sqlite-shm
+.cache/
+.vite/
+__pycache__/
+
+# Source-preparation exports: retain only runtime reference collections.
+data/training/drafts/
+data/training/qa/*.md
+data/training/qa/*.jsonl
+data/training/qa/status.json
+data/training/qa/deduplication.json
+data/training/qa/question.schema.json
+data/training/resources.json
+
+# Local operational tools; build-security checker remains available.
+scripts/checks/
+scripts/diagnostics/
+scripts/deploy/
+scripts/dev/
+scripts/setup/
+scripts/sources/
+scripts/migrations/
+scripts/presentation/
+scripts/brand/
+
+# Local Chroma handoff; serve through a retrieval backend after integration
+/search/
+# Python retrieval is deployed separately, not bundled with Express.
+services/content-retrieval/

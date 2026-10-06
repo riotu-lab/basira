@@ -1,0 +1,95 @@
+import {test,expect} from '@playwright/test';
+import {questionBank} from '../../server/referencePractice';
+import type {TrainingSession} from '../../src/trainingSession';
+for(const lang of ['ar','en'] as const)test(`${lang}: one sourced meeting, review and retry (mocked model/transport)`,async({page})=>{
+ const ar=lang==='ar',q=questionBank().find(q=>q.tradition==='hinduism')!;
+ const makeAssessment=(answer:string)=>({verdict:'partial',spokenFeedback:ar?'راجع الفكرة ثم وضّحها بمثال.':'Review the point and clarify with an example.',points:q.points.map((p,i)=>({id:p.id,status:i?'missing':'covered',answerQuote:i?'':answer,explanation:ar?'ملاحظة اختبار مرتبطة بإجابتك.':'Test observation linked to your answer.'}))});
+ const session:TrainingSession={id:'session',language:lang,tradition:'hinduism',revision:0,createdAt:Date.now(),currentId:'record',ended:false,records:[{id:'record',sessionId:'session',language:lang,question:q,attempts:[],turns:[{id:'question',role:'assistant',text:q.question[lang],pointIds:q.points.map(p=>p.id)}]}]};let answers=0,deleted=false;
+ await page.route('**/api/config',r=>r.fulfill({json:{training:{configured:true,avatarConfigured:false},ai:{configured:true},voice:{configured:false,languages:['ar','en']},avatar:{configured:false},languages:['ar','en'],audit:{enabled:false}}}));
+ await page.route('**/api/training/session',r=>r.fulfill({json:{token:'a'.repeat(64),session}}));
+ await page.route('**/api/training/session/read',r=>r.fulfill({json:session}));
+ await page.route('**/api/training/session/delete',r=>{deleted=true;return r.fulfill({json:{deleted:true}});});
+ await page.route('**/api/training/session/action',async r=>{const body=r.request().postDataJSON(),record=session.records[0];session.revision++;
+  if(body.action==='answer'){answers++;record.turns!.push({id:'answer-'+answers,role:'user',text:body.text,pointIds:q.points.map(p=>p.id)});}
+  if(body.action==='finish'||(body.action==='answer'&&record.retrying)){if(body.action==='finish'&&body.text)record.turns!.push({id:'final-draft',role:'user',text:body.text,pointIds:q.points.map(p=>p.id)});await new Promise(resolve=>setTimeout(resolve,650));const answer=record.turns!.filter(t=>t.role==='user').map(t=>t.text).join('\n');record.completed=true;record.attempts.push({id:'attempt-'+answers,at:Date.now(),answer,turns:structuredClone(record.turns),assessment:makeAssessment(answer) as any});session.ended=true;}
+  if(body.action==='retry'){session.ended=false;record.completed=false;record.retrying=true;record.turns=[{id:'question-retry',role:'assistant',text:q.question[lang],pointIds:q.points.map(p=>p.id)}];}
+  return r.fulfill({json:{session,text:''}});
+ });
+ await page.goto(`/?app=training&lang=${lang}`);
+ await expect(page.locator('#session-language')).toHaveValue(lang);
+ await page.getByRole('button',{name:ar?'ابدأ الحوار':'Begin conversation',exact:true}).click();
+ await expect(page.getByRole('log')).toContainText(q.question[lang]);
+ const answer=ar?'أستمع إلى وجهة نظرك وأسأل عن المقصود قبل الإجابة.':'I listen to your perspective and ask what you mean before answering.';
+ await page.getByRole('textbox',{name:ar?'اكتب إجابتك':'Type your answer'}).fill(answer);
+ await page.getByRole('button',{name:ar?'إرسال':'Send',exact:true}).click();
+ await page.getByRole('button',{name:ar?'إنهاء التدريب ومراجعته':'End training & review'}).click();
+ await expect(page.getByRole('status')).toContainText(ar?'نربط إجاباتك بالمراجع':'Connecting your answers with the references');
+ await expect(page.getByRole('region',{name:ar?'مراجعة المناقشة':'Discussion review'})).toContainText(answer);
+ await expect(page.locator('.conversation-space')).toHaveCount(0);
+ await expect(page.locator('.training-report-header button')).toHaveCount(0);
+ await page.getByRole('button',{name:ar?'أسلوب التعبير':'Expression',exact:true}).click();
+ await expect(page.locator('.review-evidence-workspace')).not.toBeVisible();
+ await expect(page.getByRole('heading',{name:ar?'جودة الإجابة وأسلوب التعبير':'Answer quality and expression',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:ar?'الصوت والصورة':'Audio & camera',exact:true}).click();
+ await expect(page.locator('.call-media-review')).toBeVisible();
+ await page.getByRole('button',{name:ar?'المعنى والدليل':'Answer & evidence',exact:true}).click();
+ await expect(page.locator('.review-evidence-workspace')).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:`artifacts/screenshots/focused-review-${lang}-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});
+ await page.getByRole('button',{name:ar?'أعد الإجابة عن السؤال نفسه':'Retry the same question'}).click();
+ await page.getByRole('textbox',{name:ar?'اكتب إجابتك':'Type your answer'}).fill(answer+' '+(ar?'وأقدّم مثالًا واضحًا.':'I also offer a clear example.'));
+ await page.getByRole('button',{name:ar?'إرسال':'Send',exact:true}).click();
+ await expect(page.getByRole('heading',{name:ar?'المحاولات بنفس المعايير':'Attempts against the same criteria'})).toBeVisible();
+ expect(session.records[0].attempts[0].answer).toBe(answer);expect(session.records[0].attempts).toHaveLength(2);
+ await page.reload();await page.locator('summary').filter({hasText:ar?'حوارات محفوظة':'Saved conversations'}).click();await page.getByRole('button',{name:ar?'فتح':'Open',exact:true}).click();await expect(page.getByRole('heading',{name:ar?'المحاولات بنفس المعايير':'Attempts against the same criteria'})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:`artifacts/screenshots/grounded-${lang}-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});
+ await page.getByRole('button',{name:ar?'حذف':'Delete',exact:true}).click();expect(deleted).toBe(true);
+});
+
+for(const lang of ['ar','en'] as const)for(const ending of ['explicit','disconnect'] as const)test(`${lang}: avatar and text share the canonical session (${ending}; synthetic transport)`,async({page})=>{
+ const ar=lang==='ar',q=questionBank().find(q=>q.tradition==='hinduism')!;let starts=0,stops=0;
+ const session:TrainingSession={id:'meeting',language:lang,tradition:'hinduism',revision:0,createdAt:Date.now(),currentId:'q',ended:false,records:[{id:'q',sessionId:'meeting',language:lang,question:q,attempts:[],turns:[{id:'first',role:'assistant',text:q.question[lang],pointIds:q.points.map(p=>p.id),delivery:'uncertain'}]}]};
+ await page.route('**/api/config',r=>r.fulfill({json:{training:{configured:true,avatarConfigured:true},ai:{configured:true},voice:{configured:false,languages:['ar','en']},avatar:{configured:true},languages:['ar','en'],audit:{enabled:false}}}));
+ await page.route('**/api/training/session',r=>r.fulfill({json:{token:'a'.repeat(64),session}}));
+ await page.route('**/api/training/session/read',r=>r.fulfill({json:session}));
+ await page.route('**/api/training/video-session',async r=>{await new Promise(resolve=>setTimeout(resolve,900));starts++;expect(r.request().postDataJSON()).toEqual({token:'a'.repeat(64)});return r.fulfill({json:{id:'sealed',conversationId:'mock',url:'mock',meetingToken:'mock',maxSessionSeconds:300}});});
+ await page.route('**/api/training/video-stop',r=>{stops++;return r.fulfill({json:{stopped:true}});});
+ await page.route('**/api/training/session/action',async r=>{const body=r.request().postDataJSON();expect(body.action).toBe('finish');await new Promise(resolve=>setTimeout(resolve,650));const record=session.records[0],answer=record.turns!.filter(t=>t.role==='user').map(t=>t.text).join('\n');record.completed=true;record.attempts.push({id:'final-attempt',at:Date.now(),answer,turns:structuredClone(record.turns),assessment:{verdict:'partial',spokenFeedback:ar?'راجع إجابتك ثم اختر نقطة للتدريب.':'Review your answer and choose a practice point.',points:q.points.map(p=>({id:p.id,status:'missing',answerQuote:'',explanation:'Synthetic test finding.'}))}});session.ended=true;session.revision++;return r.fulfill({json:{session,text:''}});});
+
+ await page.route('**/api/avatar/video-session',()=>{throw Error('Must not enter the independent conversation');});
+ await page.exposeFunction('submitSyntheticAnswer',async(text:string)=>{session.revision++;session.records[0].turns!.push({id:'learner',role:'user',text,pointIds:q.points.map(p=>p.id)},{id:'followup',role:'assistant',text:ar?'هل يمكنك توضيح هذه الفكرة؟':'Could you clarify this point?',pointIds:q.points.map(p=>p.id),delivery:'uncertain'});});
+ await page.addInitScript(()=>{const ctx=new AudioContext(),dest=ctx.createMediaStreamDestination(),osc=ctx.createOscillator();osc.connect(dest);osc.start();(window as any).makeTracks=()=>{const canvas=document.createElement('canvas');canvas.width=640;canvas.height=480;const c=canvas.getContext('2d')!;c.fillStyle='#375d47';c.fillRect(0,0,640,480);c.fillStyle='white';c.font='22px sans-serif';c.fillText('Synthetic transport test',140,240);const stream=canvas.captureStream(10);setTimeout(()=>c.fillRect(0,0,4,4),50);return {v:stream.getVideoTracks()[0],a:dest.stream.getAudioTracks()[0].clone()};};navigator.mediaDevices.getUserMedia=async c=>{await ctx.resume();const t=(window as any).makeTracks();return new MediaStream([...(c?.video?[t.v]:[]),...(c?.audio?[t.a]:[])]);};HTMLMediaElement.prototype.play=async()=>{};});
+ await page.route('**/@daily-co_daily-js.js*',r=>r.fulfill({contentType:'text/javascript',body:`export default {createCallObject(){const t=window.makeTracks();let message;return {on(e,fn){if(e==='error')window.breakCall=()=>fn({});if(e==='app-message'){message=fn;window.emitProviderEvent=data=>message({fromId:'avatar',data:{message_type:'conversation',conversation_id:'mock',...data}});}},async join(){},participants(){return {remote:{local:false,session_id:'avatar',tracks:{video:{track:t.v},audio:{track:t.a}}}}},async sendAppMessage(e){if(e.event_type==='conversation.respond'){await window.submitSyntheticAnswer(e.properties.text);message({fromId:'avatar',data:{message_type:'conversation',event_type:'conversation.utterance',conversation_id:'mock',inference_id:'f',properties:{role:'pal',speech:'Synthetic fixture reply'}}});}},setLocalAudio(){},setLocalVideo(){},async setInputDevicesAsync(){},async leave(){},async destroy(){t.a.stop();t.v.stop();}}}};`}));
+ await page.goto(`/?app=training&lang=${lang}`);await page.getByRole('button',{name:ar?'ابدأ الحوار':'Begin conversation',exact:true}).click();
+ await expect(page.locator('.avatar-connecting')).toBeVisible();await expect(page.locator('.meeting-message')).toHaveCount(0);await expect(page.locator('.meeting-chat-empty')).toContainText(ar?'لحظة، ويبدأ الحوار':'Your conversation is about to begin');await page.screenshot({path:`artifacts/screenshots/connecting-${lang}-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});
+ await expect(page.locator('.meeting-composer input')).toBeEnabled();await expect(page.locator('.avatar-connecting')).toHaveCount(0);await expect(page.getByRole('log')).toContainText(q.question[lang]);
+ await expect.poll(()=>page.locator('.learner-voice-bubble .voice-level-bars i').first().evaluate(e=>e.getBoundingClientRect().height)).toBeGreaterThan(4);
+ await page.getByRole('button',{name:ar?'كتم الميكروفون':'Mute',exact:true}).click();await expect(page.locator('.learner-voice-bubble')).toContainText(ar?'الميكروفون مكتوم':'Microphone muted');
+ await expect.poll(()=>page.locator('.learner-voice-bubble .voice-level-bars i').first().evaluate(e=>e.getBoundingClientRect().height)).toBe(4);
+ await page.getByRole('button',{name:ar?'تشغيل الميكروفون':'Unmute',exact:true}).click();
+ const partial=ar?'هذه إجابتي':'This is my answer';
+ await page.evaluate(text=>(window as any).emitProviderEvent({event_type:'conversation.utterance.streaming',inference_id:'learner-stream',properties:{role:'user',speech:text,content_index:0,final:false}}),partial);
+ await expect(page.locator('.meeting-message.is-streaming')).toContainText(partial);expect(session.records[0].turns).toHaveLength(1);
+ await page.screenshot({path:`artifacts/screenshots/streaming-${lang}-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});
+ const finalText=ar?'هذه إجابتي في المكالمة.':'This is my answer in the call.';
+ await page.evaluate(text=>(window as any).emitProviderEvent({event_type:'conversation.utterance.streaming',inference_id:'learner-stream',properties:{role:'user',speech:text,content_index:1,final:true}}),finalText);
+ await page.getByRole('button',{name:ar?'أصوات الواجهة مفعّلة':'Interface sounds on',exact:true}).click();await expect(page.getByRole('button',{name:ar?'أصوات الواجهة متوقفة':'Interface sounds off',exact:true})).toHaveAttribute('aria-pressed','false');
+ await page.locator('.meeting-composer input').fill(ar?'هذه إجابتي في المكالمة.':'This is my answer in the call.');await page.locator('.meeting-composer button').click();await expect(page.getByRole('log')).toContainText(ar?'هل يمكنك توضيح هذه الفكرة؟':'Could you clarify this point?');
+ await page.getByRole('button',{name:ar?'متابعة بدون شخصية':'Continue without avatar',exact:true}).click();await expect(page.getByRole('textbox',{name:ar?'اكتب إجابتك':'Type your answer'})).toBeVisible();expect(stops).toBeGreaterThan(0);expect(starts).toBe(1);
+ await expect(page.getByRole('log')).toContainText(session.records[0].turns![1].text);await page.getByRole('button',{name:ar?'الاتصال بالشخصية':'Connect avatar',exact:true}).click();await expect(page.locator('.meeting-composer input')).toBeEnabled();expect(starts).toBe(2);await expect(page.getByRole('log')).toContainText(session.records[0].turns![1].text);
+ const room=page.locator('.video-call-stage');const before=await room.boundingBox();
+ await page.getByRole('button',{name:ar?'إخفاء النص':'Hide transcript',exact:true}).click();await expect(page.locator('.meeting-chat-panel')).toHaveCount(0);
+ await page.getByRole('button',{name:ar?'عرض النص':'Show transcript',exact:true}).click();await expect(page.locator('.meeting-composer input')).toBeEnabled();expect(starts).toBe(2);
+ const after=await room.boundingBox();expect(Math.abs(before!.height-after!.height)).toBeLessThan(2);
+ const panelHeight=await page.locator('.meeting-chat-panel').evaluate(e=>e.getBoundingClientRect().height);
+ for(let i=0;i<20;i++)session.records[0].turns!.push({id:'long-'+i,role:i%2?'user':'assistant',text:(ar?'هذه فقرة مطوّلة لاختبار قراءة الحوار دون تمديد نافذة المكالمة. ':'A longer paragraph to check that conversation history scrolls without stretching the meeting. ').repeat(5),pointIds:[]});session.revision++;
+ await expect(page.locator('.meeting-message')).toHaveCount(23);
+ expect(await page.locator('.meeting-chat-panel').evaluate(e=>e.getBoundingClientRect().height)).toBeCloseTo(panelHeight,0);
+ expect(await page.locator('.video-call-transcript').evaluate(e=>e.scrollHeight>e.clientHeight)).toBe(true);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ if(test.info().project.name==='desktop'){expect((await room.boundingBox())!.width).toBeGreaterThan(700);expect((await page.locator('.meeting-chat-panel').boundingBox())!.width).toBeGreaterThanOrEqual(320);}
+ await page.locator('.video-call-transcript').evaluate(e=>e.scrollTop=0);
+ await page.waitForTimeout(300);
+ await page.screenshot({path:`artifacts/screenshots/grounded-call-${lang}-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});if(ending==='disconnect'){await page.evaluate(()=>(window as any).breakCall());await expect(page.locator('.call-completion')).toBeVisible();await expect(page.getByRole('button',{name:ar?'إعادة الاتصال':'Reconnect',exact:true})).toHaveClass('secondary');await page.locator('.call-completion').evaluate(e=>Promise.all(e.getAnimations().map(a=>a.finished)));await page.screenshot({path:`artifacts/screenshots/call-completion-${lang}-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});await page.getByRole('button',{name:ar?'راجع المحادثة':'Review conversation',exact:true}).click();}else await page.getByRole('button',{name:ar?'إنهاء التدريب ومراجعته':'End training & review',exact:true}).click();await expect(page.locator('.training-review-loading')).toBeVisible();await expect(page.getByRole('region',{name:ar?'مراجعة المناقشة':'Discussion review'})).toBeVisible();await expect(page.locator('.video-call-stage')).toHaveCount(0);expect(stops).toBeGreaterThan(1);
+});

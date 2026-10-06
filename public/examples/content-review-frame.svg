@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+ <rect width="960" height="540" rx="24" fill="#234c3d"/>
+ <rect x="32" y="32" width="896" height="476" rx="18" fill="none" stroke="#92ad80" opacity=".45"/>
+ <text x="480" y="95" text-anchor="middle" fill="#d7ec9a" font-family="Tajawal, sans-serif" font-size="22">مراجعة الاقتباسات</text>
+ <text x="480" y="225" text-anchor="middle" fill="#f7f8f3" font-family="Tajawal, sans-serif" font-size="35">مقطع مرئي للمراجعة</text>
+ <text x="480" y="310" text-anchor="middle" fill="#f7f8f3" font-family="Tajawal, sans-serif" font-size="48">«قل هو الله واحد»</text>
+ <text x="480" y="385" text-anchor="middle" fill="#d7ec9a" font-family="Tajawal, sans-serif" font-size="24">سورة الإخلاص · الآية ١</text>
+ <text x="66" y="478" fill="#c6d2bc" font-family="sans-serif" font-size="18">00:08</text>
+</svg>

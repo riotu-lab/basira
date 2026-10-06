@@ -1,0 +1,13 @@
+import {api,RequestError} from './api';
+export type MediaReference={handle:string;expires:number};
+const cached=new WeakMap<Blob,Promise<MediaReference|null>>();let policy:Promise<boolean>|undefined;
+export function retainMedia(file:Blob,scope:unknown):Promise<MediaReference|null>{
+ if(!import.meta.env.VITE_VERCEL_DEPLOYMENT)return Promise.resolve(null);
+ const old=cached.get(file);if(old)return old;
+ const task=(async()=>{policy??=fetch('/api/media/policy').then(r=>r.json()).then(p=>p.enabled===true).catch(()=>false);if(!await policy)return null;const grant=await api<{handle:string;path:string;expires:number}>('/api/content/media-retention/prepare',{mime:file.type.split(';')[0].trim(),size:file.size,scope});const {upload}=await import('@vercel/blob/client');await upload(grant.path,file,{access:'private',contentType:file.type.split(';')[0].trim(),handleUploadUrl:'/api/content/media-retention/token',clientPayload:grant.handle,multipart:file.size>4*1024*1024});await api('/api/content/media-retention/complete',{handle:grant.handle});return {handle:grant.handle,expires:grant.expires};})();cached.set(file,task);task.catch(()=>cached.delete(file));return task;
+}
+export const mediaPlayback=(ref:MediaReference)=>'/api/media/play?handle='+encodeURIComponent(ref.handle);
+export async function deleteCloudMedia(ref?:MediaReference){if(ref)await api('/api/content/media-retention/delete',{handle:ref.handle});}
+export async function saveMediaMetadata(ref:MediaReference|undefined,value:unknown){if(!ref||ref.expires<Date.now())return;const metadata=JSON.parse(JSON.stringify(value,(key,v)=>key==='image'&&typeof v==='string'&&v.startsWith('data:')?undefined:key==='blob'?undefined:v));const encoded=JSON.stringify(metadata);if(encoded.length>750000)throw new RequestError('content_too_long');await api('/api/content/media-retention/metadata',{handle:ref.handle,metadata});}
+export async function restoreMedia(ref:MediaReference):Promise<Blob>{const chunks:Blob[]=[];let at=0,total=1,type='';while(at<total){const r=await fetch(mediaPlayback(ref),{headers:{Range:`bytes=${at}-`}});if(!r.ok)throw new RequestError(r.status===410?'media_expired':'media_missing');const range=r.headers.get('Content-Range')?.match(/bytes (\d+)-(\d+)\/(\d+)/);if(!range||Number(range[1])!==at)throw new RequestError('media_missing');total=Number(range[3]);at=Number(range[2])+1;type=r.headers.get('Content-Type')||'';chunks.push(await r.blob());}const file=new Blob(chunks,{type});cached.set(file,Promise.resolve(ref));return file;}
+export function rememberMedia(file:Blob,ref?:MediaReference){if(ref&&ref.expires>Date.now())cached.set(file,Promise.resolve(ref));}

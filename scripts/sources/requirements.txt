@@ -1,0 +1,2 @@
+# Used only by the offline book importer, not the hosted application.
+PyMuPDF>=1.24,<2

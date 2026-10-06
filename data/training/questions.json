@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "coverage": "Two source-checked starter questions, not the requested complete 40–70 question bank. Reference answers are attributed paraphrases, not original quotations or scholarly approval.",
+  "questions": [
+    {
+      "id": "hindu-islam-meaning",
+      "tradition": "hinduism",
+      "status": "source_checked",
+      "question": {
+        "ar": "أنا من خلفية هندوسية، وأريد أن أفهم: ماذا يعني الإسلام، وكيف يرتبط بالإيمان والعمل؟",
+        "en": "I come from a Hindu background and would like to understand: what does Islam mean, and how does it connect belief with conduct?"
+      },
+      "answer": {
+        "ar": "الإسلام هو الخضوع لله، ويجمع بين الإيمان بوحدانيته ومحبته وتعظيمه، وبين طاعة أوامره واجتناب نواهيه. فهو اعتقاد وعمل، وليس مجرد تسمية.",
+        "en": "Islam means submission to God. It brings together belief in His oneness, love and reverence for Him, and obeying His commands while avoiding what He prohibits. It is belief and conduct, not merely a label."
+      },
+      "points": [
+        {
+          "id": "belief",
+          "text": {
+            "ar": "الاعتقاد بوحدانية الله",
+            "en": "Belief in God's oneness"
+          }
+        },
+        {
+          "id": "reverence",
+          "text": {
+            "ar": "محبة الله وتعظيمه",
+            "en": "Love and reverence for God"
+          }
+        },
+        {
+          "id": "conduct",
+          "text": {
+            "ar": "طاعة الأوامر واجتناب النواهي",
+            "en": "Obeying commands and avoiding prohibitions"
+          }
+        }
+      ],
+      "source": {
+        "title": "حوار هادئ بين هندوسي ومسلم",
+        "author": "محمد السيد محمد",
+        "url": "https://d1.islamhouse.com/data/ar/ih_books/single_010/ar-dialogue-between-a-muslim-and-a-hindu.pdf#page=2",
+        "pages": "PDF 2–3 · السؤال ٢",
+        "excerpt": "إذن، فما هو مفهوم الإسلام؟"
+      }
+    },
+    {
+      "id": "atheism-knowing-worship",
+      "tradition": "atheism",
+      "status": "source_checked",
+      "question": {
+        "ar": "أنا غير مؤمن بوجود إله؛ ولو اقتنعت بوجود خالق، فكيف أعرف كيف أعبده، ولماذا أُحاسب إن لم يصلني بيان؟",
+        "en": "I do not believe in a god. If I became convinced a creator existed, how would I know how to worship Him, and why would I be accountable without receiving guidance?"
+      },
+      "answer": {
+        "ar": "في الفهم الإسلامي الذي يقدمه هذا الجواب، تأتي معرفة كيفية العبادة من بيان الرسل والكتب المنزلة. فهي توضّح ما نعمله وما نجتنبه؛ لأن الأوامر والنواهي تحتاج إلى بلاغ، ويأتي الحساب بعد هذا البيان.",
+        "en": "In the Islamic understanding presented here, knowledge of worship comes through messengers and revealed books. They explain what to do and what to avoid: commands and prohibitions require communication, and accountability follows that clarification."
+      },
+      "points": [
+        {
+          "id": "messengers",
+          "text": {
+            "ar": "دور الرسل والكتب في البيان",
+            "en": "Messengers and books communicate guidance"
+          }
+        },
+        {
+          "id": "guidance",
+          "text": {
+            "ar": "بيان الأوامر والنواهي",
+            "en": "Commands and prohibitions must be explained"
+          }
+        },
+        {
+          "id": "accountability",
+          "text": {
+            "ar": "البيان قبل الحساب",
+            "en": "Clarification precedes accountability"
+          }
+        }
+      ],
+      "source": {
+        "title": "كيف تدعو ملحدًا؟",
+        "author": "مدحت بن الحسن آل فراج",
+        "url": "https://d1.islamhouse.com/data/ar/ih_books/single6/ar_How_to_call_an_atheist.pdf#page=47",
+        "pages": "المطبوع ٥٠–٥٢ · PDF 47–49",
+        "excerpt": "كيف نعبد ربَّنا وخالقَنا ومالكَنا؟"
+      }
+    }
+  ]
+}

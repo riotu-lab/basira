@@ -1,0 +1,22 @@
+import {test,expect} from '@playwright/test';
+for(const lang of ['ar','en'] as const)test(`${lang}: direct call stays inside the existing conversation window`,async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ const ar=lang==='ar';let starts=0;
+ await page.route('**/api/config',r=>r.fulfill({json:{ai:{configured:true},voice:{configured:true,transcriptionConfigured:true,languages:['ar','en']},avatar:{configured:true},videoCall:{configured:true,reviewConfigured:true},languages:['ar','en'],audit:{enabled:false}}}));
+ await page.route('**/api/avatar/video-session',r=>{starts++;return r.abort();});
+ await page.addInitScript(()=>{navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('Permission denied','NotAllowedError');};});
+ await page.goto(`/?app=training&lang=${lang}`);
+ await page.evaluate(()=>document.fonts.ready);
+ const before=await page.locator('.conversation-space').evaluate(el=>{const r=el.getBoundingClientRect();return {x:r.x+scrollX,y:r.y+scrollY};});
+ await expect(page.getByRole('button',{name:ar?'مكالمة فيديو بالكاميرا':'Video call with camera',exact:true})).toHaveCount(0);
+ await expect(page.getByRole('checkbox',{name:ar?'ابدأ والكاميرا مفعّلة':'Start with camera on'})).not.toBeChecked();
+ await page.getByRole('button',{name:ar?'ابدأ المناقشة':'Begin practice',exact:true}).click();
+ await expect(page.locator('.workspace>.sidebar')).toBeVisible();await expect(page.locator('.conversation-space .video-call-panel')).toBeVisible();
+ const after=await page.locator('.conversation-space').evaluate(el=>{const r=el.getBoundingClientRect();return {x:r.x+scrollX,y:r.y+scrollY};});expect(Math.abs(before!.x-after!.x)).toBeLessThan(2);if(page.viewportSize()!.width>700)expect(Math.abs(before!.y-after!.y)).toBeLessThan(2);expect(starts).toBe(0);
+ await expect(page.locator('.video-call-self')).toBeVisible();
+ await expect(page.locator('#session-language')).toBeDisabled();
+ await page.screenshot({path:`artifacts/screenshots/inline-video-${lang}-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});
+ await expect(page.getByRole('alert')).toBeVisible();expect(starts).toBe(0);
+ await page.getByRole('button',{name:ar?'رجوع':'Back',exact:true}).click();await expect(page.locator('.stage')).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+});

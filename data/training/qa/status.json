@@ -1,0 +1,46 @@
+{
+  "backgrounds": {
+    "hinduism": {
+      "count": 93,
+      "targetMet": true,
+      "sourceIds": [
+        "hindu-dawah",
+        "hindu-dialogue"
+      ],
+      "modelRejected": 1,
+      "deduplicated": 6
+    },
+    "christianity": {
+      "count": 94,
+      "targetMet": true,
+      "sourceIds": [
+        "christian-dialogue",
+        "christian-google-doc"
+      ],
+      "modelRejected": 0,
+      "deduplicated": 6
+    },
+    "atheism": {
+      "count": 85,
+      "targetMet": true,
+      "sourceIds": [
+        "atheism-invitation",
+        "atheism-objections"
+      ],
+      "modelRejected": 1,
+      "deduplicated": 14
+    },
+    "judaism": {
+      "count": 70,
+      "targetMet": true,
+      "sourceIds": [
+        "judaism-ifham",
+        "judaism-old-testament"
+      ],
+      "modelRejected": 0,
+      "deduplicated": 30
+    }
+  },
+  "humanReviewed": false,
+  "liveBankChanged": false
+}

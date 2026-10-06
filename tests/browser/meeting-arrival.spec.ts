@@ -1,0 +1,21 @@
+import {test,expect} from '@playwright/test';
+import {questionBank} from '../../server/referencePractice';
+for(const lang of ['ar','en'] as const)for(const motion of ['reduce','no-preference'] as const)test(`${lang}: room arrival with ${motion} motion (mocked session, denied devices)`,async({page})=>{
+ await page.emulateMedia({reducedMotion:motion});
+ await page.addInitScript(()=>{navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('Permission denied','NotAllowedError');};});
+ const q=questionBank().find(q=>q.tradition==='hinduism')!,session={id:'arrival',language:lang,tradition:'hinduism',revision:0,createdAt:Date.now(),currentId:'r',ended:false,records:[{id:'r',sessionId:'arrival',language:lang,question:q,attempts:[],turns:[{id:'t',role:'assistant',text:q.question[lang],pointIds:[]}]}]};
+ await page.route('**/api/config',r=>r.fulfill({json:{training:{configured:true,avatarConfigured:true},ai:{configured:true},voice:{configured:false},avatar:{configured:true},languages:['ar','en'],audit:{enabled:false}}}));
+ await page.route('**/api/training/session',r=>r.fulfill({json:{token:'a'.repeat(64),session}}));
+ await page.route('**/api/training/session/read',r=>r.fulfill({json:session}));
+ let paidStarts=0;await page.route('**/api/training/video-session',r=>{paidStarts++;return r.fulfill({status:503,json:{error:'test_should_not_start'}});});
+ await page.goto(`/?app=training&lang=${lang}`);
+ await page.getByRole('button',{name:lang==='ar'?'ابدأ الحوار':'Begin conversation',exact:true}).click();
+ await expect(page.locator('.conversation-space .video-call-panel')).toBeVisible();
+ await expect(page.locator('.is-calling')).toHaveCount(1);
+ await page.waitForTimeout(500);expect(paidStarts).toBe(0);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ const animated=await page.locator('.embedded-video-call').evaluate(el=>getComputedStyle(el).animationName);if(motion==='reduce')expect(animated).toBe('none');
+ await page.locator('.video-call-panel summary').filter({hasText:lang==='ar'?'حول هذه الجلسة':'About this session'}).click();
+ await expect(page.getByRole('button',{name:lang==='ar'?'إيقاف حفظ التسجيل للمراجعة':'Turn off review recording',exact:true}).last()).toBeVisible();
+ await page.screenshot({path:`artifacts/screenshots/arrival-${lang}-${motion}-${test.info().project.name}.png`,fullPage:true});
+});

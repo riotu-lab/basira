@@ -1,0 +1,8 @@
+import type {ContentTuple} from './contentStructure';
+export const assessmentParts=['evidence','reasoning','conclusion'] as const;
+export type AssessmentStatus='supported_in_excerpt'|'inconsistent_with_excerpt'|'insufficient_evidence'|'specialist_review'|'not_stated';
+export type JudgmentCitation={id:string;sourceId:string;source:string;locator:string;quote:string;provenance:'unverified'|'identified';reference?:import('./contentReviewTypes').Reference;licenseUrl?:string};
+export type JudgmentPart={status:AssessmentStatus;explanation:string;citations:JudgmentCitation[];suggestion:string};
+export type AssessedItem={practice?:{token:string;question:string};item:ContentTuple;parts:Record<typeof assessmentParts[number],JudgmentPart>;uncertain:boolean;decision:'pending'|'accepted'|'rejected'|'edited';reviewerNote:string;editedCorrection:string};
+export type ContentAssessment={version:1;at:string;items:AssessedItem[];total:number;complete:boolean;summary?:{overview:string;nextStep:string};summaryUnavailable?:boolean};
+export const assessmentLabels={ar:{evidence:'الدليل المستشهد به',reasoning:'طريقة الاستدلال',conclusion:'النتيجة',supported_in_excerpt:'يدعمه المقتطف ضمن نطاقه',inconsistent_with_excerpt:'اختلاف مع المقتطف',insufficient_evidence:'الأدلة لا تكفي للحكم',specialist_review:'تحتاج مراجعة مختص',not_stated:'غير مذكور في المحتوى'},en:{evidence:'Cited evidence',reasoning:'Reasoning',conclusion:'Conclusion',supported_in_excerpt:'Supported within the excerpt',inconsistent_with_excerpt:'Differs from the excerpt',insufficient_evidence:'Insufficient evidence',specialist_review:'Specialist review needed',not_stated:'Not stated in the content'}};
