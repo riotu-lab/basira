@@ -1,3 +1,7 @@
+## 7 October 2026 — visible Docker quick start
+
+Expanded both Arabic and English main READMEs with copyable clone/configuration, credential, build/start and stop instructions, default URL, occupied-port alternative and first-download expectations. Manual npm setup is explicitly an alternative. Checked against the tracked Compose configuration and Docker environment template; documentation-only change, no deployment.
+
 ## 7 October 2026 — replay after interruption
 
 Added a connected-call “Replay latest reply / استمع للرد الأخير” action using Tavus conversation.echo. Replays the full latest canonical assistant reply without adding a learner answer, assessment or question advancement; no claim of exact resume position or verified hearing. Debounced pending replay, timeout/error handling, cleanup on stop/interrupt, and suppression of continuation nudges during replay preparation. Fixed the local muted state surviving a missing stopped-speaking event: the next authenticated avatar started-speaking event restores playback. Added explicit “أعد الرد الأخير” / “repeat the last reply” control returning the latest follow-up rather than the original question, without another model call. 504 automated tests and production build passed. Real Tavus audio replay remains unverified; browser tests use synthetic transport.

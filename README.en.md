@@ -44,11 +44,48 @@ basira/
 
 **Practice with an avatar.** The source-guided FULL integration keeps Tavus speech and video while routing conversation decisions through Basira's question bank, grounded follow-ups and assessment. Text, reconnects and retries share the same server session. It uses separate development/production training PALs and callbacks. Run `npm run dev:avatar` for local calls through an authenticated tunnel to your local backend; see [setup](docs/SETUP.md) and [verification status](docs/STATUS.md). Legacy Echo and general-call integrations remain available for earlier records. Text training and assessment do not depend on an avatar account.
 
-## Optional Docker quick start
+## Start locally with Docker
 
-Docker runs the app and populated local retrieval database together. Add your own OpenAI/Tavus/ngrok credentials, then run `docker compose up --build` and open http://localhost:3000. No Vercel or Upstash account is needed. First startup downloads the 606 MB reference archive. See [Docker setup and verification status](docs/DOCKER.md) for the credential template, startup, stopping and troubleshooting.
+**Requirements:** Git and a running Docker Desktop (Linux containers), or Docker Engine with Compose v2. You do not need Node.js or Python installed on your computer, or Vercel/Upstash accounts.
 
-## Run locally
+**1. Clone and prepare configuration.** If you already cloned the repository, open its folder. Copy the template only if `.env` does not exist; do not overwrite existing settings.
+
+```bash
+git clone https://github.com/riotu-lab/basira.git
+cd basira
+cp docker/local.env.example .env
+```
+
+In PowerShell, use `Copy-Item docker/local.env.example .env` instead of `cp`.
+
+**2. Edit `.env` with your own credentials before starting:**
+
+| Variable | Required value |
+|---|---|
+| `OPENAI_API_KEY` | OpenAI API key with available API credits |
+| `TAVUS_API_KEY` | Tavus key with available conversational minutes and session capacity |
+| `TAVUS_FACE_ID` | Replica ID accessible to your Tavus account |
+| `NGROK_AUTHTOKEN` | ngrok account token for avatar callbacks to your local backend |
+
+[Credential links and details](docs/DOCKER.md#requirements). Never commit `.env`. For text training and content review without an avatar, set `BASIRA_DOCKER_AVATAR=false`; OpenAI is still required for live processing.
+
+**3. Build and run:**
+
+```bash
+docker compose up --build
+```
+
+Once startup completes, open **[http://localhost:3000](http://localhost:3000)**. This starts the frontend, backend and local retrieval database. First startup downloads the 606 MB reference archive and can take several minutes. With Docker, you do not need to run `npm` or manually install the database.
+
+If the port is occupied, add `BASIRA_LOCAL_PORT=3008` to `.env` and open http://localhost:3008. Finish any active call, then stop with:
+
+```bash
+docker compose down
+```
+
+Docker volumes preserve data for the next start. [Full Docker guide and troubleshooting](docs/DOCKER.md). Manual installation without Docker remains available below.
+
+## Alternative: run manually without Docker
 
 Use Node.js 24 and npm. The following shell commands assume Git Bash, macOS, or Linux; on Windows PowerShell use `Copy-Item .env.example .env` for the copy step.
 
