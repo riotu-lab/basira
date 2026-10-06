@@ -4,7 +4,7 @@ Updated 7 October 2026. [Live application](https://basiraapp.vercel.app).
 
 ## Local Docker evaluation setup
 
-Optional Compose configuration runs the app, checksum-verified populated Chroma service and isolated development avatar callback. Verified image builds/startup, 38,742-passage retrieval, Arabic/English desktop/mobile browser rendering, real Tavus session creation/cleanup, restart persistence and shutdown. 465 JavaScript and eight Python tests passed. Physical-device conversation inside Docker remains untested. Production is unchanged. See [Docker guide](DOCKER.md).
+Optional Compose configuration runs the app, checksum-verified populated Chroma service and isolated development avatar callback. Verified image builds/startup, 38,742-passage retrieval, Arabic/English desktop/mobile browser rendering, real Tavus session creation/cleanup, restart persistence and shutdown. 466 JavaScript and eight Python tests passed. Live browser uploads for all four media types completed the full AI report pipeline. Arabic text training and English avatar training with synthetic microphone/camera completed assessment and retry comparison. Fixed the local-only Docker retrieval hostname allowlist. Physical-device/noisy-room acceptance and provider acknowledgement of interruption remain unverified. One initial avatar connection timed out; later connections passed. Production is unchanged. See [Docker guide](DOCKER.md).
 
 ## Implemented
 

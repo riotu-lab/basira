@@ -10,7 +10,7 @@ export function localEnvironment(credentials,token,avatar=true){
  if(token.length<32)throw Error('Local retrieval setup has not completed.');
  const env={PATH:process.env.PATH,HOME:'/home/basira',NODE_ENV:'production',
   HOST:'0.0.0.0',PORT:'3000',AI_PROVIDER:'openai',AVATAR_PROVIDER:'tavus',
-  BASIRA_ENV:'development',BASIRA_DEV_INSTANCE:'docker-local',TRAINING_STORE:'sqlite',AI_AUDIT_STORE:'sqlite',
+  BASIRA_DOCKER_LOCAL:'true',BASIRA_ENV:'development',BASIRA_DEV_INSTANCE:'docker-local',TRAINING_STORE:'sqlite',AI_AUDIT_STORE:'sqlite',
   CONTENT_RETRIEVAL_ENABLED:'true',CONTENT_RAG_URL:'http://retrieval:8000',CONTENT_RAG_TOKEN:token};
  for(const key of allowed)if(credentials[key])env[key]=credentials[key];
  if(avatar){

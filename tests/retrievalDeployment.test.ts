@@ -11,3 +11,13 @@ it('promotes private Upstash configuration and never the local Chroma endpoint',
 it('rejects partial or unsafe Vector configuration',()=>{
  for(const value of [{UPSTASH_VECTOR_REST_TOKEN:'secret'},{UPSTASH_VECTOR_REST_URL:'https://fixture.upstash.io'},{UPSTASH_VECTOR_REST_URL:'https://other.example',UPSTASH_VECTOR_REST_TOKEN:'secret'}])expect(()=>productionRetrievalValues(value)).toThrow();
 });
+
+import {retrieveContent} from '../server/contentRetrieval';
+import type {ContentStructure} from '../src/contentStructure';
+it('allows only the explicit local Docker retrieval service over HTTP',async()=>{
+ const empty={items:[],morePossible:false} as ContentStructure;
+ const local={CONTENT_RAG_URL:'http://retrieval:8000',CONTENT_RAG_TOKEN:'local',BASIRA_ENV:'development',BASIRA_DOCKER_LOCAL:'true'};
+ const run=(env:NodeJS.ProcessEnv)=>retrieveContent(empty,env,async()=>[],new AbortController().signal);
+ await expect(run(local)).resolves.toMatchObject({items:[]});
+ for(const changes of [{BASIRA_DOCKER_LOCAL:'false'},{BASIRA_ENV:'production'},{VERCEL:'1'},{CONTENT_RAG_URL:'http://other:8000'},{CONTENT_RAG_URL:'http://retrieval:9000'}])await expect(run({...local,...changes})).rejects.toThrow();
+});

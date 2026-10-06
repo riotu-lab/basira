@@ -7,7 +7,8 @@ export async function retrieveContent(structure:ContentStructure,env:NodeJS.Proc
  const upstash=upstashConfiguration(env);
  if(!upstash&&(!env.CONTENT_RAG_URL||!env.CONTENT_RAG_TOKEN))throw new ApiError('content_retrieval_not_configured',503);
  const url=upstash?.url||new URL(env.CONTENT_RAG_URL!);
- if(url.username||url.password||!(url.protocol==='https:'||(!env.VERCEL&&url.protocol==='http:'&&['localhost','127.0.0.1'].includes(url.hostname))))throw new ApiError('content_retrieval_not_configured',503);
+ const dockerLocal=env.BASIRA_DOCKER_LOCAL==='true'&&env.BASIRA_ENV==='development'&&url.hostname==='retrieval'&&url.port==='8000';
+ if(url.username||url.password||!(url.protocol==='https:'||(!env.VERCEL&&url.protocol==='http:'&&(['localhost','127.0.0.1'].includes(url.hostname)||dockerLocal))))throw new ApiError('content_retrieval_not_configured',503);
  if(!structure.items.length)return {at:new Date().toISOString(),items:[],status:'candidates_only'};
  const queries=structure.items.map(i=>JSON.stringify({evidence:i.evidence,reasoning:i.reasoning,conclusion:i.conclusion,class:i.class}));
  const embeddings=await embed(queries,signal);

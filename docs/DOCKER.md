@@ -69,6 +69,16 @@ docker compose config --quiet
 - Real Chromium checks: Arabic/English training and content pages at 390 px and 1440 px, with no horizontal overflow or JavaScript errors. These check the UI, not complete AI workflows.
 - Real ngrok callback reached this exact container backend. Created and stopped one real Tavus session without joining the media call; no production PAL or storage settings were used.
 - Restart preserved the training session and its question; test record deletion worked. Shutdown removed only this Compose stack and preserved its named volumes.
-- 465 JavaScript tests and eight Python setup tests passed. Scanned 214 container application files against the configured credentials: no embedded credentials found. The application processes run as UID 10001 after reading the host-owned secret.
+- 466 JavaScript tests and eight Python setup tests passed. Scanned 214 container application files against the configured credentials: no embedded credentials found. The application processes run as UID 10001 after reading the host-owned secret.
 
-**Still requiring human acceptance:** microphone/camera/audio playback and a complete spoken training/review journey inside Docker. No physical-device conversation or new end-to-end AI content report was claimed by these checks. Other CPU architectures have not been tested.
+## Live workflow acceptance (7 October 2026)
+
+A browser run using the real configured services exposed and fixed a Docker-only connection issue: the app's HTTP retrieval allowlist rejected the Compose service name. The launcher now explicitly permits `retrieval:8000` only in local development; Vercel and other hostnames remain excluded by regression tests.
+
+- Text, image, audio and video uploads completed extraction, retrieval, AI assessment and final report generation. The inputs were synthetic, not human accuracy benchmarks.
+- Image text could be corrected. Image/video visual reviews were generated. Audio/video remained playable and seekable. Report edits, export, save/reopen and deletion passed.
+- Arabic text training completed real model feedback, retry and comparison. Original answers were preserved; reopening and deletion passed.
+- English avatar training completed real WebRTC video, synthetic microphone speech transcribed by Tavus, reference-linked review and a typed targeted retry with comparison. Mic/camera toggles worked; the interruption control was exercised, but provider acknowledgement of interruption was not independently verified. Calls and test records were cleaned up.
+- One initial avatar connection timed out; subsequent connections succeeded. An early test also ended at a partial transcript and was corrected to wait for a completed backend answer before reviewing. These results are not a guarantee against provider/network failures.
+
+**Still requiring human acceptance:** physical microphone/camera quality, natural interruption timing and noisy-room performance. Other CPU architectures have not been tested.
