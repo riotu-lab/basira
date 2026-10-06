@@ -4,6 +4,12 @@ Bilingual dialogue training and pre-publication content review, built by the RIO
 
 [Try Basira](https://basiraapp.vercel.app) · [Setup](docs/SETUP.md) · [Current status](docs/STATUS.md) · [Acceptance evidence](docs/ACCEPTANCE.md)
 
+## For hackathon judges
+
+**To try the full configured experience, open [the live demo](https://basiraapp.vercel.app).** No installation or personal API keys are required; demo availability remains subject to the team's provider credits and concurrent-session limits. [Watch the recorded walkthrough](https://www.youtube.com/watch?v=dRobDNQ9dP0).
+
+**To inspect or run the code, use the local setup below.** The app starts without credentials, but live AI actions require the relevant services. A local checkout runs its own backend: it does **not** silently use the team's production API, accounts, storage, or credits. Changing `NODE_ENV` or `BASIRA_ENV` to production is not a way to connect to the live demo.
+
 ## What you can do
 
 **Train a conversation.** Choose a background and language, answer a source-linked question, explore AI follow-ups, and review your answer against reference criteria. Retry a finding and compare both attempts. The training collection contains 342 bilingual records across Hinduism, Christianity, atheism, and Judaism; these remain pending specialist approval.
@@ -14,39 +20,61 @@ Bilingual dialogue training and pre-publication content review, built by the RIO
 
 ## Run locally
 
-Use Node.js 24 and npm.
+Use Node.js 24 and npm. The following shell commands assume Git Bash, macOS, or Linux; on Windows PowerShell use `Copy-Item .env.example .env` for the copy step.
 
 ```bash
+git clone https://github.com/riotu-lab/basira.git
+cd basira
 npm ci
 cp .env.example .env
-# Set your own service credentials in .env.
+# Do not overwrite an existing .env; edit it to add your own credentials.
 npm run dev
 ```
+
+For **local text training**, set `OPENAI_API_KEY` in `.env`, leave `BASIRA_ENV=development` and `TRAINING_STORE=sqlite`, restart, and choose text mode in the training settings. No Tavus, ngrok, Redis, or Vercel account is required for that path. Supported text tasks can alternatively use DeepSeek; this does not replace OpenAI for content extraction, embeddings, or media processing.
 
 Open the URL printed by startup (default: **http://localhost:3000**). The landing page links to both workflows; direct routes are `/?app=training` and `/?app=content`. Add `&lang=en` for English.
 
 Keep credentials server-side. Never commit `.env` or put API keys in browser storage. A fresh checkout does not contain working service credentials or the hosted imported retrieval index. Use your own accounts and a permitted source collection; the live demo runs separately from a local checkout.
 
-| Capability | Configuration |
-| --- | --- |
-| Text conversation and assessment | OpenAI or DeepSeek; select `AI_PROVIDER` |
-| Image reading, transcription, audio coaching, standalone speech | `OPENAI_API_KEY` and model settings |
-| Source-guided Tavus training | `TAVUS_API_KEY`, `TAVUS_FACE_ID`, plus training PAL/gateway settings in the setup guide |
-| Direct Tavus camera/microphone calls | Separate `TAVUS_FULL_PAL_ID` |
-| Persistent training state, protection and AI audit | Upstash Redis REST URL and token |
-| Production content retrieval | Upstash Vector URL/token and an ingested reference index |
-| Private hosted recordings | Vercel Blob credentials and media-retention settings |
+### Services, keys, and expected costs
 
-See [.env.example](.env.example), [credential setup](docs/SETUP.md), [Tavus integration](docs/TAVUS.md), and [Vercel deployment](docs/VERCEL.md). Optional LiveAvatar support remains documented in setup. Live provider requests consume the configured account's credits.
+Set keys only in your ignored local `.env`. Account registration alone does not ensure model access, available credits, or sufficient quotas. Plan allowances change; follow the official links before choosing a plan. Basira does not subscribe or purchase credits automatically.
+
+| Service | When it is needed | Values to configure / where to obtain them | Credits or subscription |
+| --- | --- | --- | --- |
+| OpenAI API | Default text training/review; content extraction, image reading, transcription, embeddings and audio coaching | `OPENAI_API_KEY`: [API keys](https://platform.openai.com/api-keys). [Setup](https://developers.openai.com/api/docs/quickstart) / [billing](https://platform.openai.com/settings/organization/billing/overview). | API usage requires available billing quota or applicable credits and access to the requested models. This app uses API keys, not a ChatGPT sign-in/subscription integration. |
+| DeepSeek, optional | Alternative provider for supported text tasks | `AI_PROVIDER=deepseek`, `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL`: [developer console](https://platform.deepseek.com/). | Metered API use; available balance is required. [Pricing](https://api-docs.deepseek.com/quick_start/pricing/). Not a replacement for the complete OpenAI-dependent pipeline. |
+| Tavus | Live avatar voice/video training | `TAVUS_API_KEY`, `TAVUS_FACE_ID`: [developer portal](https://platform.tavus.io/). Set `AVATAR_PROVIDER=tavus`. The development launcher prepares `TAVUS_TRAINING_PAL_ID_DEV` and `BASIRA_PUBLIC_URL_DEV`. | Available conversation minutes and an available concurrent-session slot are required. Limited free-plan allowances may cover a short test; paid use is needed when allowances are exhausted. [Plans](https://www.tavus.io/pricing). |
+| ngrok | Local Tavus callbacks to your own backend; unnecessary for text-only training | `NGROK_AUTHTOKEN`: [account authtoken](https://dashboard.ngrok.com/get-started/your-authtoken). Then run `npm run dev:avatar` instead of `npm run dev`. | A free plan is available with limits; paid features are optional depending on usage. [Plans](https://ngrok.com/pricing). |
+| Upstash Vector | Managed source retrieval for content review | `UPSTASH_VECTOR_REST_URL`, `UPSTASH_VECTOR_REST_TOKEN`, `UPSTASH_VECTOR_NAMESPACE`: [console](https://console.upstash.com/). Dense / Custom / **3,072 dimensions** / COSINE; populate a permitted corpus. | The current 3,072-dimensional setup exceeds the free plan's 1,536-dimensional limit; choose a compatible paid plan, or configure the local Chroma alternative. [Limits](https://upstash.com/docs/vector/help/faq) / [pricing](https://upstash.com/pricing/vector). |
+| Upstash Redis | Shared hosted sessions, protection and audit retention; not needed for ordinary local SQLite operation | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`: [console](https://console.upstash.com/). | Free tier available within its limits; paid usage beyond the chosen allowance. [Plans](https://upstash.com/pricing/redis). |
+| Vercel / private Blob | Hosting and temporary private cloud media; not needed to start the ordinary local app | `BLOB_READ_WRITE_TOKEN`: create/connect a **private** Blob store in your own [Vercel project](https://vercel.com/dashboard). Hosting setup also uses server-side `CRON_SECRET` for cleanup. | Storage, transfer and operations have plan-specific allowances and charges. [Blob pricing](https://vercel.com/docs/vercel-blob/usage-and-pricing). |
+
+**Content retrieval also needs data, not just keys.** The team's 38,742-passage hosted index and original import archive are not distributed in this repository. An empty Vector index will not reproduce the hosted retrieval results. See [retrieval setup](docs/CONTENT-RETRIEVAL.md) for the expected corpus/schema and local Chroma alternative; use sources you have permission to ingest. The migration script requires an existing source index and does not download the missing corpus. The bundled training Q&A and Quran collection remain available in `data/`.
+
+**Model access matters.** The current tuple extractor explicitly calls `gpt-5.6-luna`; its model selection is not overridden by `OPENAI_MODEL`. Other operations use their documented model settings. A fresh provider account must have access to each requested model; missing access or exhausted quota prevents that feature from completing.
+
+The supported local Tavus route requires a model provider, Tavus credentials and ngrok. Keep its terminal open. Microphone/camera access requires browser permission; closing the launcher stops its owned local backend and tunnel. Legacy `LIVEAVATAR_*`, Echo `TAVUS_PAL_ID`, and general-call `TAVUS_FULL_PAL_ID` settings are **not** prerequisites for the current source-guided training route.
+
+See [.env.example](.env.example), [detailed setup](docs/SETUP.md), [Tavus integration](docs/TAVUS.md), and [hosting setup](docs/VERCEL.md). No Vercel login or deployment is required to run the app locally.
 
 ## Checks
 
 ```bash
 npm test
 npm run build
-npm run test:browser
 npm run doctor
 ```
+
+For browser tests, install Chromium once and make the app and Playwright use the same port (the test configuration defaults to 3001):
+
+```bash
+npx playwright install chromium
+PORT=3001 npm run test:browser
+```
+
+On PowerShell: `$env:PORT="3001"; npm run test:browser`. Stop only your own server if that port is occupied. Linux may need Playwright's documented system dependencies. Browser/live tests have separate requirements; passing automated tests does not prove live provider credit or physical-device quality.
 
 Unit/component tests use mocks and fixtures. Browser and live-provider evidence are distinguished in [acceptance](docs/ACCEPTANCE.md) and [status](docs/STATUS.md). Live check scripts are opt-in and may consume credits; see [scripts](scripts/README.md).
 

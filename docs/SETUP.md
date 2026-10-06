@@ -23,7 +23,7 @@ The current training meeting uses Tavus FULL with Basira as its custom conversat
 
 Browser automation currently uses Playwright/Chromium. If the execution environment denies it, report the exact restriction and continue other work; do not copy historical sandbox problems as current blockers or bypass security controls.
 
-Content review: choose a type, provide content, and use Generate full report. Images are read automatically; the full-report action handles audio/video extraction before assessment. Manual correction and individual extraction actions remain available. Empty/synthetic preview reports never count as real analysis. Source matching does not authenticate unknown books or hadith.
+Content review: choose a type, provide content, and select **Review content / راجع المحتوى**. This runs extraction → structured tuples → per-item retrieval and judgment → final summary. Transcript correction remains available when needed; the active journey does not call the legacy standalone quotation-check action. A complete source-backed local report needs a configured retrieval backend with populated data, in addition to model access. See the [README service and cost table](../README.md#services-keys-and-expected-costs).
 
 ## Unified source-guided FULL training
 
