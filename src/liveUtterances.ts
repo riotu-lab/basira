@@ -32,7 +32,7 @@ export function displayUtterances(turns:Turn[],entries:LiveUtterance[]){
   const match=result.findIndex((t,i)=>t.id===e.canonicalId||(i>=e.base&&t.role===e.role&&(t.text===e.text||(e.role==='assistant'&&t.text.startsWith(e.text)))));
   if(match>=0){
    // A final server record is authoritative, including corrected STT. Partial text cannot replace it.
-   if(e.final)result[match]={...result[match],...(e.interrupted?{text:e.text}:{}),streamed:true};
+   if(e.final)result[match]={...result[match],...(e.interrupted?{interrupted:true}:{}),streamed:true};
    else if(e.role==='assistant')result[match]={...result[match],text:e.text,partial:true,streamed:true};
   }else if(!e.final||!turns.slice(e.base).some(t=>t.role===e.role&&t.text===e.text))result.push({id:e.id,role:e.role,text:e.text,at:0,delivery:'uncertain',partial:!e.final,streamed:true,provisional:true});
  }

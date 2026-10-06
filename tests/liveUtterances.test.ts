@@ -10,7 +10,7 @@ it('merges a streamed avatar reply into its canonical turn and deduplicates lega
  const s=new LiveUtterances(),turns:any[]=[{id:'reply',role:'assistant',text:'A full question?'}];s.update(event('A full',0,'pal'),turns);s.update(event('A full',0,'replica'),turns);
  expect(s.entries).toHaveLength(1);expect(displayUtterances(turns,s.entries)).toHaveLength(1);expect(displayUtterances(turns,s.entries)[0].text).toBe('A full');
  s.update({...event('A full question?',0,'pal'),event_type:'conversation.utterance'},turns);expect(s.entries[0].final).toBe(false);
- s.interruptAssistant();s.update(event('A full question?',1,'pal',true),turns);expect(displayUtterances(turns,s.entries)[0].text).toBe('A full');
+ s.interruptAssistant();s.update(event('A full question?',1,'pal',true),turns);expect(displayUtterances(turns,s.entries)[0].text).toBe('A full question?');expect(displayUtterances(turns,s.entries)[0].interrupted).toBe(true);
 });
 it('keeps partial text display-only and reconciles final user events without creating extra turns',()=>{
  const s=new LiveUtterances(),turns:any[]=[{id:'q',role:'assistant',text:'Question?'}];s.update(event('My tentative'),turns);expect(displayUtterances(turns,s.entries)).toHaveLength(2);expect(turns).toHaveLength(1);

@@ -111,11 +111,11 @@ it('submits a final typed draft atomically without generating another question',
 it('allows one clarification in a retry, waits for fragments, then returns to comparison',async()=>{
  const {engine,model}=fixture();const {token,session}=await engine.create('en','hinduism');const original=session.currentId;
  await engine.act(token,{id:'original',action:'finish',text:'Original answer'},signal());await engine.act(token,{id:'retry',action:'retry',recordId:original},signal());
- model.referenceFollowup.mockResolvedValueOnce({readyForReview:false,text:'Please clarify this point.',pointIds:[]});
+ model.referenceFollowup.mockResolvedValueOnce({readyForReview:false,text:'Please clarify this point.',pointIds:[currentTrainingRecord(session).question.points[0].id]});
  expect((await engine.act(token,{id:'r1',action:'answer',text:'Retry answer'},signal())).session.ended).toBe(false);
  model.referenceFollowup.mockResolvedValueOnce({readyForReview:false,text:'',pointIds:[]});
  expect((await engine.act(token,{id:'fragment',action:'answer',text:'I think—',inputKind:'transcribed'},signal())).session.ended).toBe(false);
- model.referenceFollowup.mockResolvedValueOnce({readyForReview:false,text:'Another question?',pointIds:[]});
+ model.referenceFollowup.mockResolvedValueOnce({readyForReview:false,text:'Another question?',pointIds:[currentTrainingRecord(session).question.points[0].id]});
  const result=await engine.act(token,{id:'complete',action:'answer',text:'Here is my completed explanation.'},signal());
  expect(result.session.ended).toBe(true);expect(result.session.records).toHaveLength(1);expect(result.session.currentId).toBe(original);expect(currentTrainingRecord(result.session).attempts).toHaveLength(2);expect(result.text).toBe('');
 });
@@ -152,4 +152,28 @@ it('keeps the same question when a follow-up is rejected instead of marking it c
  model.referenceFollowup.mockResolvedValueOnce({text:'',pointIds:[],readyForReview:false});
  const r=await engine.act(token,{id:'answer',action:'answer',text:'الكون له سبب.'},signal());
  expect(r.session.currentId).toBe(session.currentId);expect(r.session.records).toHaveLength(1);expect(model.assessReference).not.toHaveBeenCalled();
+});
+
+it('recovers the reported spoken controls without ending or changing the question until explicitly requested',async()=>{
+ const {ModelProvider}=await import('../server/model');const request=vi.fn();const provider=new ModelProvider({OPENAI_API_KEY:'fixture'},request);
+ const {engine,model}=fixture();model.referenceFollowup.mockImplementation((...args:any[])=>provider.referenceFollowup(args[0],args[1],args[2],args[3],args[4]));
+ const {token,session}=await engine.create('ar','atheism');let result;
+ for(const [id,text] of [['a','في الحقيقة لا أعرف، ولكن.'],['b','سوف أقول إن.'],['c','هل فهمتني؟'],['d','هل تسمعني؟']]){
+  result=await engine.act(token,{id,action:'answer',text,inputKind:'transcribed'},signal());expect(result.session.currentId).toBe(session.currentId);expect(result.session.ended).toBe(false);
+  if(id==='a'||id==='b')expect(result.text).toBe('');else expect(result.text).not.toBe('');
+ }
+ expect(model.assessReference).not.toHaveBeenCalled();
+ result=await engine.act(token,{id:'next',action:'answer',text:'هل لديك سؤال آخر؟',inputKind:'transcribed'},signal());
+ expect(result.session.currentId).not.toBe(session.currentId);expect(result.session.ended).toBe(false);expect(result.text).toContain('لننتقل');expect(request).not.toHaveBeenCalled();
+});
+
+it('recovers cancelled word fragments without replaying them on later callbacks',async()=>{
+ const {engine,store,model}=fixture();const {token,session}=await engine.create('ar','atheism');await store.put(token,{...session,live:{handle:'test',callId:'call',expires:Date.now()+60000}});
+ model.referenceFollowup.mockResolvedValue({text:'',pointIds:[],readyForReview:false});
+ const messages=[{role:'assistant',content:'Question?'},{role:'user',content:'إن الله عز وجل يتحكم في كل.'},{role:'user',content:'شيء.'}];
+ await engine.completion(token,messages,signal(),'call');
+ let s=await store.get(token);expect(currentTrainingRecord(s).turns?.at(-1)?.text).toBe('إن الله عز وجل يتحكم في كل.\nشيء.');
+ await engine.completion(token,[...messages,{role:'user',content:'وهذا رأيي.'}],signal(),'call');
+ await engine.completion(token,messages.slice(0,2),signal(),'call');
+ s=await store.get(token);expect(currentTrainingRecord(s).turns?.filter(t=>t.role==='user').map(t=>t.text)).toEqual(['إن الله عز وجل يتحكم في كل.\nشيء.','وهذا رأيي.']);expect(s.records).toHaveLength(1);
 });

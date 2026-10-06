@@ -264,3 +264,8 @@
 @media(max-width:740px){.avatar-turn-status{top:10px;inset-inline-start:10px;padding:9px 11px;gap:9px}.avatar-turn-status strong{font-size:13px}.avatar-turn-status small{font-size:11px}}
 
 .training-studio .grounded-meeting.is-retry-ready > .workspace{grid-template-columns:minmax(0,1fr)}
+
+.chat-thinking{display:flex;align-items:center;gap:10px;width:fit-content;padding:10px 14px;margin-block:10px;border-radius:14px;background:#edf2e8;color:#4c6e59;font-size:13px}
+.chat-thinking-dots{display:flex;gap:4px}.chat-thinking-dots i{width:5px;height:5px;border-radius:50%;background:#729977;animation:chat-think 1.4s ease-in-out infinite}.chat-thinking-dots i:nth-child(2){animation-delay:.16s}.chat-thinking-dots i:nth-child(3){animation-delay:.32s}
+@keyframes chat-think{0%,70%,100%{opacity:.35;transform:translateY(0)}35%{opacity:1;transform:translateY(-3px)}}
+@media(prefers-reduced-motion:reduce){.chat-thinking-dots i{animation:none}}

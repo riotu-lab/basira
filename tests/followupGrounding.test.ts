@@ -82,3 +82,20 @@ it('checks a complete spoken contribution before generating and grounding its fo
  expect(await new ModelProvider({OPENAI_API_KEY:'fixture'},request).referenceFollowup('en',q,input,AbortSignal.timeout(5000))).toMatchObject({grounding:'model_checked'});
  expect(request).toHaveBeenCalledTimes(3);
 });
+
+it.each([['في الحقيقة لا أعرف، ولكن.',''],['سوف أقول إن.',''],['هل تسمعني؟','وصلني كلامك'],['هل فهمتني؟','هل تود توضيح فكرتك'],['هل لديك سؤال آخر؟','لننتقل']])('handles the reported stalled conversation without a model call: %s',async(text,expected)=>{
+ const request=vi.fn();const provider=new ModelProvider({OPENAI_API_KEY:'fixture'},request);
+ const result=await provider.referenceFollowup('ar',q,[...turns,{id:'recovery',role:'user',text,pointIds:[],inputKind:'transcribed'}],AbortSignal.timeout(5000));
+ if(expected)expect(result.text).toContain(expected);else expect(result.text).toBe('');
+ expect(result.readyForReview).toBe(text==='هل لديك سؤال آخر؟');expect(request).not.toHaveBeenCalled();
+});
+
+it('does not infer the missing word after كل or generate a premature follow-up',async()=>{
+ const request=vi.fn();const result=await new ModelProvider({OPENAI_API_KEY:'fixture'},request).referenceFollowup('ar',q,[{id:'a',role:'user',text:'إن الله عز وجل يتحكم في كل.',pointIds:[],inputKind:'transcribed'}],AbortSignal.timeout(5000));
+ expect(result.text).toBe('');expect(result.readyForReview).toBe(false);expect(request).not.toHaveBeenCalled();
+});
+
+it('replays the latest follow-up rather than advancing or replacing it with the original question',async()=>{
+ const request=vi.fn();const result=await new ModelProvider({OPENAI_API_KEY:'fixture'},request).referenceFollowup('ar',q,[...turns,{id:'followup',role:'assistant',text:'كيف توضح هذه الفكرة؟',pointIds:[q.points[0].id]},{id:'replay',role:'user',text:'أعد الرد الأخير',pointIds:[],inputKind:'transcribed'}],AbortSignal.timeout(5000));
+ expect(result.text).toBe('كيف توضح هذه الفكرة؟');expect(result.readyForReview).toBe(false);expect(request).not.toHaveBeenCalled();
+});
