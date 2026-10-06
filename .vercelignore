@@ -66,3 +66,8 @@ scripts/brand/
 /search/
 # Python retrieval is deployed separately, not bundled with Express.
 services/content-retrieval/
+
+# Optional local-only Docker evaluation tooling
+/docker/
+/compose.yaml
+/.dockerignore

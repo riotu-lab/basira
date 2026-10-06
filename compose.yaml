@@ -1,0 +1,67 @@
+name: basira-local
+services:
+  reference-setup:
+    build:
+      context: .
+      dockerfile: docker/retrieval.Dockerfile
+    command: ["python", "/service/docker/reference_setup.py"]
+    user: "0:0"
+    volumes:
+      - reference-data:/data
+      - local-config:/config
+    restart: "no"
+
+  retrieval:
+    build:
+      context: .
+      dockerfile: docker/retrieval.Dockerfile
+    depends_on:
+      reference-setup:
+        condition: service_completed_successfully
+    command: ["python", "/service/docker/retrieval_entry.py"]
+    volumes:
+      - reference-data:/data
+      - local-config:/config:ro
+    healthcheck:
+      test: ["CMD", "python", "/service/docker/retrieval_health.py"]
+      start_period: 90s
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: "no"
+    stop_grace_period: 30s
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+    init: true
+    depends_on:
+      retrieval:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${BASIRA_LOCAL_PORT:-3000}:3000"
+    environment:
+      BASIRA_DOCKER_AVATAR: "${BASIRA_DOCKER_AVATAR:-true}"
+    secrets:
+      - judge_credentials
+    volumes:
+      - app-state:/app/.local
+      - local-config:/config:ro
+    healthcheck:
+      test: ["CMD", "node", "/app/docker/app_health.mjs"]
+      start_period: 90s
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: "no"
+    stop_grace_period: 30s
+
+secrets:
+  judge_credentials:
+    file: .env
+
+volumes:
+  reference-data:
+  local-config:
+  app-state:

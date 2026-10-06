@@ -28,6 +28,8 @@ basira/
 ├── tests/           Automated and browser checks
 ├── scripts/         Setup, diagnostics and data preparation
 ├── services/        Optional Python retrieval service
+├── docker/          Local container setup / إعداد الحاويات المحلية
+├── compose.yaml     Local app + retrieval / التطبيق والاسترجاع محليًا
 ├── docs/            Setup, architecture and acceptance documentation
 ├── .env.example     Empty configuration template; no working secrets
 ├── package.json     Dependencies and run/build/test commands
@@ -41,6 +43,10 @@ basira/
 **Review content.** Paste text or upload text, an image, audio, or video, then select **Review content**. The pipeline extracts text, structures evidence/reasoning/conclusion/class tuples, retrieves reference passages for each tuple, assesses them, and produces a final report. Transcript correction is available when needed. Reviewers can inspect passages and references, accept/reject/edit findings, save and reopen reports, and export them. A separate visual editorial layer reviews images and sampled video frames. Retrieval uses managed Upstash Vector in production; self-hosted Chroma is an alternative. Retrieval is not source authentication or religious approval, and imported editions and permissions remain unresolved.
 
 **Practice with an avatar.** The source-guided FULL integration keeps Tavus speech and video while routing conversation decisions through Basira's question bank, grounded follow-ups and assessment. Text, reconnects and retries share the same server session. It uses separate development/production training PALs and callbacks. Run `npm run dev:avatar` for local calls through an authenticated tunnel to your local backend; see [setup](docs/SETUP.md) and [verification status](docs/STATUS.md). Legacy Echo and general-call integrations remain available for earlier records. Text training and assessment do not depend on an avatar account.
+
+## Optional Docker quick start
+
+Docker runs the app and populated local retrieval database together. Add your own OpenAI/Tavus/ngrok credentials, then run `docker compose up --build` and open http://localhost:3000. No Vercel or Upstash account is needed. First startup downloads the 606 MB reference archive. See [Docker setup and verification status](docs/DOCKER.md) for the credential template, startup, stopping and troubleshooting.
 
 ## Run locally
 
