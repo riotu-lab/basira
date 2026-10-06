@@ -1,0 +1,94 @@
+/* Quiet, short transitions; no motion on live video or layout dimensions. */
+:root {
+  --ease-settle: cubic-bezier(.22, 1, .36, 1);
+  --motion-fast: 160ms;
+  --motion-panel: 320ms;
+}
+button, .finding, .upload-zone, input, textarea, select {
+  transition: background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease, color var(--motion-fast) ease,
+    box-shadow 200ms ease, opacity var(--motion-fast) ease,
+    transform var(--motion-fast) var(--ease-settle);
+}
+textarea {font:inherit}
+textarea:focus-visible {
+  outline:3px solid #8aa75a;
+  outline-offset:4px;
+}
+.composer {
+  transition:border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+.composer:focus-within {
+  border-color:#8da580;
+  background:#fff;
+  box-shadow:0 0 0 3px #8da58018;
+}
+.composer input:focus-visible {outline:none}
+.transcript {scrollbar-gutter:stable}
+.step, .step>span {
+  transition:color 200ms ease, background-color 200ms ease, border-color 200ms ease;
+}
+.finding:focus-within, .upload-zone:focus-within {
+  outline:3px solid #8aa75a;
+  outline-offset:4px;
+}
+button, select, summary {min-height:44px}
+input[type=checkbox], input[type=radio] {accent-color:var(--green)}
+summary {cursor:pointer;align-content:center}
+@media (hover:hover) and (pointer:fine) {
+  .primary:not(:disabled):hover {
+    transform:translateY(-1px);
+    box-shadow:0 4px 12px #234c3d18;
+  }
+  .language-button:hover, .workflow-nav button:not(:disabled):not(.selected):hover,
+  .mode-switch button:not(:disabled):not(.selected):hover,
+  .engine-switch button:not(:disabled):not(.selected):hover {
+    background-color:#edf1e7;
+  }
+  .finding:not(.selected):hover, .upload-zone:hover {
+    border-color:#8da580;
+    background-color:#f8faf4;
+  }
+  .text-button:not(:disabled):hover {color:#47682e}
+}
+button:not(:disabled):active {transform:translateY(1px);box-shadow:none}
+@media (prefers-reduced-motion:no-preference) {
+  .content-workflow, .review-layout, .workspace {
+    animation:panel-appear var(--motion-panel) var(--ease-settle) both;
+  }
+  .chat, .prelude, .connecting, .session-time-ended, .connection-error,
+  .settings, .session-info, .comparison-result {
+    animation:panel-appear 260ms var(--ease-settle) both;
+  }
+  .turn {animation:message-appear 240ms var(--ease-settle) both}
+  .session-time-warning, .review-guidance, .review-error, .self-preview {
+    animation:soft-reveal 200ms ease-out both;
+  }
+  details[open] > :not(summary) {animation:soft-reveal 180ms ease-out both}
+}
+@keyframes panel-appear {
+  from {opacity:0;transform:translateY(6px)}
+  to {opacity:1;transform:translateY(0)}
+}
+@keyframes message-appear {
+  from {opacity:0;transform:translateY(4px)}
+  to {opacity:1;transform:translateY(0)}
+}
+@keyframes soft-reveal {from {opacity:0} to {opacity:1}}
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after {
+    animation:none!important;
+    transition:none!important;
+    scroll-behavior:auto!important;
+  }
+}
+/* Contain paragraph margins so mode-switch height measurements remain stable. */
+.mode-details {display:flow-root}
+.upload-zone.dragging {
+  border-style:solid;
+  border-color:#65834f;
+  background:#edf4e2;
+  box-shadow:0 0 0 3px #8da58018;
+}
+.upload-hint {flex-basis:100%;text-align:center;color:var(--muted);font-size:12px}
+.media-upload .upload-hint {flex-basis:auto}

@@ -1,0 +1,139 @@
+{
+  "version": 2,
+  "inputDocument": "docs/requirements/AI Details.md",
+  "checkedAt": "2026-10-04",
+  "resources": [
+    {
+      "id": "hindu-dawah",
+      "tradition": "hinduism",
+      "title": "دعوة الهندوس إلى الإسلام",
+      "author": "إبراهيم بن عبد الغفور",
+      "originalUrl": "https://d1.islamhouse.com/data/ar/ih_books/single9/ar-daw3at-alhindos.pdf",
+      "format": "pdf",
+      "alternatives": [],
+      "rights": "Not established; retain originals privately. No redistribution license inferred from public availability.",
+      "researchStatus": "Original could not be read by research tool; HTTP/authentication cause not established",
+      "catalogUrl": "https://islamhouse.com/ar/books/2838293/"
+    },
+    {
+      "id": "hindu-dialogue",
+      "tradition": "hinduism",
+      "title": "حوار هادئ بين هندوسي ومسلم",
+      "author": "محمد السيد محمد",
+      "originalUrl": "https://d1.islamhouse.com/data/ar/ih_books/single_010/ar-dialogue-between-a-muslim-and-a-hindu.pdf",
+      "format": "pdf",
+      "alternatives": [],
+      "rights": "Not established; retain originals privately. No redistribution license inferred from public availability.",
+      "researchStatus": "PDF readable in research tool; binary not downloaded"
+    },
+    {
+      "id": "christian-dialogue",
+      "tradition": "christianity",
+      "title": "حوار هادئ بين نصراني ومسلم",
+      "author": "محمد السيد محمد",
+      "originalUrl": "https://www.alukah.net/library/0/157439/%D8%AD%D9%88%D8%A7%D8%B1-%D9%87%D8%A7%D8%AF%D8%A6-%D8%A8%D9%8A%D9%86-%D9%86%D8%B5%D8%B1%D8%A7%D9%86%D9%8A-%D9%88%D9%85%D8%B3%D9%84%D9%85-pdf/",
+      "format": "html",
+      "alternatives": [
+        {
+          "url": "https://islamcontent.com/ar/content-download?content_id=7781&url=contents%2F7781%2Far-hiwar-bayn-nasraniin-wamuslim.pdf",
+          "format": "pdf",
+          "identity": "Matching title in research index; edition equivalence must be checked before approving questions"
+        }
+      ],
+      "rights": "Not established; retain originals privately. No redistribution license inferred from public availability.",
+      "researchStatus": "Original could not be read by research tool; HTTP/authentication cause not established",
+      "catalogUrl": "https://islamhouse.com/ar/books/2835186/"
+    },
+    {
+      "id": "christian-google-doc",
+      "tradition": "christianity",
+      "title": "مائة سؤال في النصرانية ليس لها إجابة",
+      "author": "خطاب المصري",
+      "originalUrl": "https://docs.google.com/document/d/1smLhZkbY5i_yfSGLuayXokVnbLVuv-pJ/edit?usp=drive_link&ouid=113159971118962431893&rtpof=true&sd=true",
+      "format": "google_doc",
+      "alternatives": [
+        {
+          "url": "https://docs.google.com/document/d/1smLhZkbY5i_yfSGLuayXokVnbLVuv-pJ/export?format=txt",
+          "format": "txt",
+          "identity": "Official text export of the exact supplied document ID"
+        }
+      ],
+      "rights": "Not established; retain originals privately. No redistribution license inferred from public availability.",
+      "researchStatus": "User supplied matching Word and Markdown copies; title and author read from supplied text. Google export remains inaccessible; local copy replaces download.",
+      "localPath": ".local/book-sources/christian-google-doc/one-hundred-questions-on-christianity.md",
+      "localFormat": "md",
+      "originalLocalPath": ".local/book-sources/christian-google-doc/one-hundred-questions-on-christianity.doc",
+      "extractionScope": "Attribute arguments to the author. This is a collection of questions and polemical commentary, not a complete answer key. Extract only self-contained questions with explicit source-supported answers; do not invent missing answers, endorse insults or present claims as neutral descriptions of Christians. User identifies this as the linked Google document; equivalence was not independently checked."
+    },
+    {
+      "id": "atheism-objections",
+      "tradition": "atheism",
+      "title": "الرد على أشهر شبهات الملحدين",
+      "author": "هيثم طلعت",
+      "originalUrl": "https://d1.islamhouse.com/data/ar/ih_books/single_010/ar-ashhar-shubuhat-almulhidin.docx",
+      "format": "docx",
+      "alternatives": [
+        {
+          "url": "https://d1.islamhouse.com/data/ar/ih_books/single_010/ar-ashhar-shubuhat-almulhidin.pdf",
+          "format": "pdf",
+          "identity": "PDF linked beside the original DOCX on the same publisher record"
+        }
+      ],
+      "rights": "Not established; retain originals privately. No redistribution license inferred from public availability.",
+      "researchStatus": "Original DOCX not readable through research tool; official alternative PDF readable (250 PDF pages)",
+      "catalogUrl": "https://islamhouse.com/ar/books/2839452/"
+    },
+    {
+      "id": "atheism-invitation",
+      "tradition": "atheism",
+      "title": "كيف تدعو ملحدًا؟",
+      "author": "مدحت بن الحسن آل فراج",
+      "originalUrl": "https://d1.islamhouse.com/data/ar/ih_books/single6/ar_How_to_call_an_atheist.pdf",
+      "format": "pdf",
+      "alternatives": [],
+      "rights": "Not established; retain originals privately. No redistribution license inferred from public availability.",
+      "researchStatus": "PDF readable in research tool; binary not downloaded"
+    },
+    {
+      "id": "judaism-old-testament",
+      "tradition": "judaism",
+      "title": "هل العهد القديم كلمة الله؟",
+      "author": "منقذ بن محمود السقار",
+      "originalUrl": "https://dawa.center/file/2125",
+      "format": "html",
+      "alternatives": [
+        {
+          "url": "https://dawa.center/file/2125/download",
+          "format": "pdf",
+          "identity": "Download link on the exact supplied publisher record"
+        }
+      ],
+      "rights": "Not established; retain originals privately. No redistribution license inferred from public availability.",
+      "researchStatus": "Downloaded and hash-verified locally: 153 PDF pages, 153 pass extraction checks. Text remains unreviewed.",
+      "extractionScope": "Use complete source-supported question/answer pairs relevant to dialogue about Judaism. Attribute claims to the author; do not generalize about Jewish people or adopt insulting language. Do not invent missing answers."
+    },
+    {
+      "id": "judaism-ifham",
+      "tradition": "judaism",
+      "title": "بذل المجهود في إفحام اليهود (ت: طويلة)",
+      "author": "السموأل بن يحي المغربي",
+      "originalUrl": "https://dawa.center/file/590?lang=ar",
+      "format": "html",
+      "alternatives": [
+        {
+          "url": "https://dawa.center/file/590/download",
+          "format": "pdf",
+          "identity": "Download link on the exact supplied publisher record"
+        },
+        {
+          "url": "https://dawa.center/storage/files/597a92de6e667.pdf",
+          "format": "pdf",
+          "identity": "Preview PDF link on the exact supplied publisher record"
+        }
+      ],
+      "rights": "Not established; retain originals privately. No redistribution license inferred from public availability.",
+      "researchStatus": "Downloaded and hash-verified locally: 216 PDF pages, 0 pass extraction checks. Text remains unreviewed.",
+      "extractionScope": "Use complete source-supported question/answer pairs relevant to dialogue about Judaism. Attribute claims to the author; do not generalize about Jewish people or adopt insulting language. Do not invent missing answers."
+    }
+  ]
+}

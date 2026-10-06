@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-06",
+  "collection": "islamthon",
+  "totalPassages": 38742,
+  "archiveDeclaration": "search.zip/search/search.py --source argument help",
+  "scope": "Identification audit only. This register does not grant permission or upgrade runtime provenance.",
+  "works": {
+    "aqeeda": {
+      "title": "الموسوعة العقدية",
+      "officialUrl": "https://dorar.net/aqeeda",
+      "identity": "archive_declared_and_internally_attributed",
+      "edition": null,
+      "editionLead": "A secondary catalogue describes an eight-part electronic collection downloaded in Rabi I 1433 AH; exact imported snapshot is unconfirmed.",
+      "catalogueUrl": "https://islamport.com/l/aqd/587/1.htm",
+      "evidence": [
+        {
+          "recordId": "aqeeda-00001",
+          "kind": "internal_attribution",
+          "note": "Introduction explicitly names Dorar and describes compiling more than 140 references.",
+          "documentSha256": "5366b186fd746e17918b2bdee93d293079962346f40c603933281e337d9732fe"
+        }
+      ],
+      "count": 8796,
+      "firstId": "aqeeda-00000",
+      "lastId": "aqeeda-08795",
+      "contentFingerprint": "d0fd043706ead51df3d13a4fd945fcee97878797127b241a2e5d1033227ad1bb",
+      "compiler": {
+        "organization": "القسم العلمي بمؤسسة الدرر السنية",
+        "basisUrl": "https://dorar.net/feedback",
+        "scope": "Official description of the encyclopedia family; exact imported edition attribution remains unconfirmed."
+      },
+      "permission": {
+        "status": "not_cleared_restrictive_published_terms",
+        "termsUrl": "https://dorar.net/feedback",
+        "grantEvidence": null
+      },
+      "allPassagesCompared": false,
+      "runtimeProvenance": "unverified",
+      "eligibleForVerifiedPractice": false
+    },
+    "fiqh": {
+      "title": "الموسوعة الفقهية",
+      "officialUrl": "https://dorar.net/feqhia",
+      "identity": "archive_declared_secondary_catalogue_correspondence",
+      "edition": null,
+      "editionLead": "Secondary catalogue describes three automatically paginated parts, electronic download Rabi I 1433 AH. Do not treat these as printed-edition page numbers.",
+      "catalogueUrl": "https://www.islamarchive.cc/ketab_content/4641",
+      "evidence": [
+        {
+          "recordId": "fiqh-00000",
+          "kind": "secondary_catalogue_and_parallel_attribution",
+          "url": "https://islamhouse.com/ar/articles/707270/",
+          "note": "Opening purification material also appears as an excerpt attributed to Muhammad ibn Ibrahim al-Tuwayjiri, Mukhtasar al-Fiqh al-Islami, fifteenth edition. This does not establish authorship of the entire imported fiqh group.",
+          "documentSha256": "58f96a2a5f5fc67b8e9fc1f0a51a2d1dfadf3fb874e4a1d71652a1568dc1ca71"
+        }
+      ],
+      "count": 1078,
+      "firstId": "fiqh-00000",
+      "lastId": "fiqh-01077",
+      "contentFingerprint": "f913d28cce8f004312bd70f2b8d951cb2638eef984ea1c92cc291cbe9923fdb9",
+      "compiler": {
+        "organization": "القسم العلمي بمؤسسة الدرر السنية",
+        "basisUrl": "https://dorar.net/feedback",
+        "scope": "Official description of the encyclopedia family; exact imported edition attribution remains unconfirmed."
+      },
+      "permission": {
+        "status": "not_cleared_restrictive_published_terms",
+        "termsUrl": "https://dorar.net/feedback",
+        "grantEvidence": null
+      },
+      "allPassagesCompared": false,
+      "runtimeProvenance": "unverified",
+      "eligibleForVerifiedPractice": false
+    },
+    "tafsir": {
+      "title": "التفسير المحرر",
+      "officialUrl": "https://dorar.net/tafseer",
+      "identity": "archive_declared_with_primary_page_samples",
+      "edition": null,
+      "editionLead": "Web corpus snapshot/date unknown. Do not assign a printed edition or volume pagination.",
+      "evidence": [
+        {
+          "recordId": "tafsir-00000",
+          "kind": "primary_page_sample_correspondence",
+          "url": "https://dorar.net/tafseer/1",
+          "note": "Surah introduction, names and evidence order correspond. The imported sample omits source footnotes present online; this is not byte-for-byte verification.",
+          "documentSha256": "3293c74f04200f53ad913905de08fde50f2f14bc7b6ba573eb9bda5b349b6e84"
+        },
+        {
+          "recordId": "tafsir-28867",
+          "kind": "primary_page_sample_correspondence",
+          "url": "https://dorar.net/tafseer/114/1",
+          "note": "Closing scientific-benefits discussion corresponds. Source hadith references visible online are absent from the sampled imported text.",
+          "documentSha256": "05e2b359948264449c2a3a43a290f6e13bf34422efa2f47c73ddebc2d8c21244"
+        }
+      ],
+      "count": 28868,
+      "firstId": "tafsir-00000",
+      "lastId": "tafsir-28867",
+      "contentFingerprint": "7fcd0c0c12891d5f20b815666ff90e1e78c1f764e59693944ef3418e4608ba12",
+      "compiler": {
+        "organization": "القسم العلمي بمؤسسة الدرر السنية",
+        "basisUrl": "https://dorar.net/feedback",
+        "scope": "Official description of the encyclopedia family; exact imported edition attribution remains unconfirmed."
+      },
+      "permission": {
+        "status": "not_cleared_restrictive_published_terms",
+        "termsUrl": "https://dorar.net/feedback",
+        "grantEvidence": null
+      },
+      "allPassagesCompared": false,
+      "runtimeProvenance": "unverified",
+      "eligibleForVerifiedPractice": false
+    }
+  }
+}

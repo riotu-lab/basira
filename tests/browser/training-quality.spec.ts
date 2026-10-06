@@ -1,0 +1,25 @@
+import {test,expect} from '@playwright/test';
+import {QUALITY_CRITERIA} from '../../src/trainingQuality';
+for(const language of ['ar','en'] as const)test(`${language}: quality evidence, focused retry and comparison (mocked model)`,async({page,request})=>{
+ const ar=language==='ar',bank=await(await request.get('/api/training/questions')).json(),q=bank.questions[0];let n=0;
+ await page.route('**/api/config',r=>r.fulfill({json:{ai:{configured:true},voice:{configured:false},avatar:{configured:false},languages:['ar','en']}}));
+ await page.route('**/api/training/assess',r=>{n++;const b=r.request().postDataJSON(),turn=b.turns.at(-1),quote=turn.text;return r.fulfill({json:{verdict:'partial',spokenFeedback:ar?'مراجعة اختبارية.':'Fixture assessment.',points:q.points.map((p:any)=>({id:p.id,status:'missing',answerQuote:'',explanation:ar?'لم تُذكر.':'Not addressed.'})),quality:{version:1,spokenDelivery:'not_assessed',findings:Object.keys(QUALITY_CRITERIA).map(id=>({id,status:id==='clarity'?(n===1?'needs_attention':'effective'):'insufficient_evidence',explanation:ar?'ملاحظة اختبارية تستند إلى النص.':'Fixture observation based on text.',suggestion:id==='clarity'?(ar?'وضّح العلاقة بين الفكرتين.':'Clarify the relationship between the ideas.'):'',evidence:id==='clarity'?[{passageId:'learner-1-1',turnId:turn.id,quote,start:0,end:quote.length}]:[]}))}}});});
+ await page.goto(`/?app=training&lang=${language}`);await page.getByRole('button',{name:ar?'تدريب بأسئلة من المراجع':'Practise questions from sources',exact:true}).click();
+ const input=page.getByRole('textbox',{name:ar?'إجابتك':'Your answer',exact:true});await input.fill(ar?'هذه فكرتي الأولى.':'This is my first idea.');
+ await page.getByRole('button',{name:ar?'قيّم إجابتي بالمرجع':'Compare my answer with the reference',exact:true}).click();
+ const quality=page.getByRole('region',{name:ar?'جودة الإجابة والتواصل واللغة':'Answer, communication and language quality'});await expect(quality).toBeVisible();
+ await quality.locator('summary').filter({hasText:QUALITY_CRITERIA.clarity[language]}).click();
+ await expect(quality.locator('blockquote')).toHaveText(ar?'هذه فكرتي الأولى.':'This is my first idea.');
+ await quality.getByRole('button',{name:ar?'أعد التدريب على هذا الجانب':'Retry with this focus'}).click();
+ await expect(page.locator('.reference-focus')).toContainText(QUALITY_CRITERIA.clarity[language]);
+ await input.fill(ar?'هذه فكرتي الجديدة مع توضيحها.':'This is my revised idea with clarification.');
+ await page.getByRole('button',{name:ar?'قيّم إجابتي بالمرجع':'Compare my answer with the reference',exact:true}).click();
+ await expect(page.locator('.reference-comparison')).toBeVisible();
+ await quality.locator('summary').filter({hasText:QUALITY_CRITERIA.clarity[language]}).click();
+ await expect(quality).toContainText(ar?'الأصلية: تحتاج إلى عناية':'Original: Needs attention');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+ const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('basira.reference-practice.v1')!));expect(saved[0].attempts[1].focusQualityId).toBe('clarity');expect(saved[0].attempts[0].turns[1].inputKind).toBe('typed');
+ await quality.scrollIntoViewIfNeeded();await page.screenshot({path:`artifacts/screenshots/quality-${language}-${test.info().project.name}.png`,fullPage:true});
+ await page.reload();await page.getByRole('button',{name:ar?'تدريب بأسئلة من المراجع':'Practise questions from sources',exact:true}).click();
+ await page.locator('.saved-sessions summary').click();await page.getByRole('button',{name:ar?'فتح':'Open',exact:true}).click();await expect(page.getByRole('region',{name:ar?'جودة الإجابة والتواصل واللغة':'Answer, communication and language quality'})).toBeVisible();
+});

@@ -1,0 +1,85 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Local credentials; keep the safe setup template
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Hosting metadata, local session data, and usage counters
+.vercel/
+.local/
+.aws/
+.codex/
+.agents/
+
+# Generated screenshots, recordings, and test reports
+artifacts/
+test-results/
+playwright-report/
+blob-report/
+
+# Logs and caches
+*.log
+.cache/
+.vite/
+__pycache__/
+*.py[cod]
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Generated submission materials
+deliverables/
+
+# Rebuildable Q&A search database (JSON/JSONL sources are tracked)
+data/training/qa/qa.sqlite
+
+# Private AI review records and SQLite sidecars
+*.sqlite-wal
+*.sqlite-shm
+
+# Windows download metadata and local source-document backups
+*:Zone.Identifier
+*.old
+
+# Local presentation decks and private working notes
+/*.pptx
+docs/requirements/transcript-ar.md
+docs/implementation-status/
+docs/TEAM-REQUIREMENTS.md
+
+# Presentation-only tooling and design exploration (kept locally)
+/design/
+/scripts/brand/
+/scripts/presentation/
+/docs/demo/
+/docs/usage_example/
+
+# Teammate retrieval handoff and local vector index (not application source)
+/search.zip
+/search/
+
+# Python retrieval runtime caches
+__pycache__/
+*.pyc
+
+# Additional credential and local database formats
+*.p12
+*.pfx
+*.sqlite
+*.db
+
+# Private planning and reproducible intermediate datasets
+/docs/requirements/
+/data/training/drafts/

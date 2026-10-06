@@ -1,0 +1,22 @@
+import React from 'react';
+import {it,expect,vi,afterEach} from 'vitest';
+import {render,fireEvent,cleanup} from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+import {FileUpload} from '../src/FileUpload';
+afterEach(cleanup);
+it('handles nested drag targets without flicker and ignores drops while processing',()=>{
+ const onFiles=vi.fn();
+ const view=render(<FileUpload label="Upload" lang="en" accept=".txt" disabled={false} onFiles={onFiles}/>);
+ const zone=view.container.querySelector('label')!;
+ const dataTransfer={types:['Files'],files:[new File(['x'],'x.txt')]};
+ fireEvent.dragEnter(zone,{dataTransfer});
+ fireEvent.dragEnter(zone.querySelector('span')!,{dataTransfer});
+ fireEvent.dragLeave(zone.querySelector('span')!,{dataTransfer});
+ expect(zone).toHaveClass('dragging');
+ fireEvent.dragLeave(zone,{dataTransfer});
+ expect(zone).not.toHaveClass('dragging');
+ view.rerender(<FileUpload label="Upload" lang="en" accept=".txt" disabled onFiles={onFiles}/>);
+ fireEvent.drop(zone,{dataTransfer});
+ expect(onFiles).not.toHaveBeenCalled();
+ expect(view.getByLabelText('Upload')).toBeDisabled();
+});

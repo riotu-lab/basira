@@ -1,0 +1,28 @@
+import {test,expect} from '@playwright/test';
+for(const lang of ['ar','en'] as const)test(`${lang}: final report, partial retry, decisions, persistence and export (mocked judge)`,async({page})=>{
+ let quotationCalls=0;
+ const ar=lang==='ar',text=ar?'يجوز المسح على الخفين.':'Wiping over leather socks is permitted.';
+ const item={id:'item-1',unitId:'text-1',passage:text,start:0,end:text.length,evidence:'',reasoning:'',conclusion:text,class:'fiqh'};
+ await page.route('**/api/content/structure',r=>r.fulfill({json:{morePossible:false,items:[item]}}));
+ await page.route('**/api/content/review',r=>{quotationCalls++;return r.fulfill({status:500,json:{error:'removed_stage_called'}});});
+ await page.route('**/api/content/summary',r=>r.fulfill({json:{overview:'Review summary fixture',nextStep:'Check the references.'}}));
+ const absent={status:'not_stated',explanation:ar?'غير مذكور.':'Not stated.',citations:[],suggestion:''};
+ let calls=0;
+ await page.route('**/api/content/assess-item',async r=>{calls++;await new Promise(resolve=>setTimeout(resolve,250));return calls===1?r.fulfill({status:502,json:{error:'content_retrieval_unavailable'}}):r.fulfill({json:{assessment:{item,parts:{evidence:absent,reasoning:absent,conclusion:{status:'supported_in_excerpt',explanation:ar?'يتوافق مع المقتطف في هذا النطاق.':'Consistent within this excerpt’s scope.',citations:[{id:'p1',sourceId:'fiqh-1',source:'fiqh',locator:'ج 1 · ص 37',quote:'يمسح ظاهر الخف.',provenance:'unverified'}],suggestion:''}},uncertain:false,decision:'pending',reviewerNote:'',editedCorrection:''},retrieval:{status:'candidates_only',at:'now',items:[]}}});});
+ await page.goto(`/?app=content&lang=${lang}`);await page.locator('#content-language').selectOption(lang);await page.locator('#publication-text').fill(text);
+ await page.getByRole('button',{name:ar?'راجع المحتوى':'Review content',exact:true}).click();
+ await expect(page.getByRole('alert')).toBeVisible();await expect(page.getByText(ar?'التقرير جزئي. النتائج المكتملة محفوظة؛ استأنف لإكمال بقية المقاطع.':'This report is partial. Completed results are saved; resume to assess the remaining passages.',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:ar?'استئناف المراجعة':'Resume review',exact:true}).click();
+ await expect(page.locator('.assessment-item')).toHaveCount(1);await expect(page.locator('.assessment-loading')).toHaveCount(0);
+ await page.getByRole('button',{name:ar?'قبول المراجعة':'Accept review',exact:true}).click();await expect(page.getByRole('button',{name:ar?'قبول المراجعة':'Accept review',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:ar?'رفض المراجعة':'Reject review',exact:true}).click();await expect(page.getByRole('button',{name:ar?'رفض المراجعة':'Reject review',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:ar?'تعديل المراجعة':'Edit review',exact:true}).click();await page.getByLabel(ar?'صياغتك المقترحة':'Your proposed wording',{exact:true}).fill(ar?'صياغة بشرية':'Human wording');await page.getByLabel(ar?'ملاحظة المراجع':'Reviewer note',{exact:true}).fill('Reviewed by a human');
+ await page.locator('.assessment-parts details summary').click();await expect(page.locator('.assessment-parts')).toContainText('يمسح ظاهر الخف.');
+ expect(quotationCalls).toBe(0);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:`artifacts/screenshots/assessment-${lang}-${test.info().project.name}.png`,fullPage:true});
+ const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:ar?'تصدير تقرير مقروء':'Export readable report'}).click();const dl=await downloadPromise;expect(dl.suggestedFilename()).toContain('basira-review-');
+ await expect(page.getByText(ar?'محفوظ على هذا الجهاز':'Saved on this device',{exact:true})).toBeVisible();await page.reload();await page.locator('.report-library summary').click();await page.getByRole('button',{name:ar?'فتح':'Open',exact:true}).click();
+ await expect(page.getByLabel(ar?'ملاحظة المراجع':'Reviewer note',{exact:true})).toHaveValue('Reviewed by a human');
+ await page.getByRole('button',{name:ar?'حذف التقرير':'Delete report',exact:true}).click();await expect(page.locator('.content-final-report')).toHaveCount(0);
+});

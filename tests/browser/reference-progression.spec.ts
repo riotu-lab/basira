@@ -1,0 +1,26 @@
+import {test,expect} from '@playwright/test';
+for(const language of ['ar','en'] as const)test(`${language}: automatic question progression and session review (mocked AI)`,async({page,request})=>{
+ const ar=language==='ar';
+ const bank=await (await request.get('/api/training/questions')).json();
+ const questions=bank.questions.filter((q:any)=>q.tradition==='hinduism').slice(0,2);
+ await page.route('**/api/training/questions',r=>r.fulfill({json:{questions}}));
+ await page.route('**/api/config',r=>r.fulfill({json:{ai:{configured:true},voice:{configured:false},avatar:{configured:false},languages:['ar','en']}}));
+ await page.route('**/api/training/followup',r=>r.fulfill({json:{text:'',pointIds:[],readyForReview:true}}));
+ await page.route('**/api/training/assess',r=>{const b=r.request().postDataJSON(),q=questions.find((q:any)=>q.id===b.questionId);return r.fulfill({json:{verdict:'partial',spokenFeedback:ar?'مراجعة اختبارية محفوظة.':'Saved fixture assessment.',points:q.points.map((p:any)=>({id:p.id,status:'missing',answerQuote:'',explanation:ar?'دليل غير كافٍ في الإجابة الاختبارية.':'Insufficient evidence in fixture answer.'}))}});});
+ await page.goto(`/?app=training&lang=${language}`);
+ await page.getByRole('button',{name:ar?'تدريب بأسئلة من المراجع':'Practise questions from sources',exact:true}).click();
+ const input=page.getByRole('textbox',{name:ar?'إجابتك':'Your answer',exact:true});
+ await input.fill(ar?'إجابتي عن السؤال الأول.':'My answer to the first question.');
+ await page.getByRole('button',{name:ar?'تابع المناقشة':'Continue discussion',exact:true}).click();
+ await expect(page.getByRole('heading',{name:questions[1].question[language],exact:true})).toBeVisible();
+ await input.fill(ar?'إجابتي عن السؤال الثاني.':'My answer to the second question.');
+ await page.getByRole('button',{name:ar?'تابع المناقشة':'Continue discussion',exact:true}).click();
+ await expect(page.getByText(ar?/أكملت جميع الأسئلة المتاحة/:/completed all available questions/)).toBeVisible();
+ await page.getByRole('button',{name:questions[0].question[language],exact:true}).click();
+ await expect(page.locator('.reference-assessment')).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+ const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('basira.reference-practice.v1')!));
+ expect(saved).toHaveLength(2);expect(saved[0].sessionId).toBe(saved[1].sessionId);
+ expect(saved.every((r:any)=>r.attempts.length===1&&r.completed)).toBeTruthy();
+ await page.screenshot({path:`artifacts/screenshots/progression-${language}-${test.info().project.name}.png`,fullPage:true});
+});

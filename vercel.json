@@ -1,0 +1,53 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "VITE_VERCEL_DEPLOYMENT=1 npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 300,
+      "includeFiles": "{data/quran/**,data/training/questions.json,data/training/qa/{hinduism,christianity,atheism,judaism}.json,node_modules/ffmpeg-static/ffmpeg,node_modules/ffprobe-static/bin/linux/x64/ffprobe}",
+      "excludeFiles": "{node_modules/ffprobe-static/bin/{darwin,win32,linux/{ia32,arm,arm64}}/**,.env*,**/.env*,{docs,deliverables,artifacts,test-results,tests,design,.local,.aws,.codex,.agents,.git,scripts}/**,**/*.{pem,key,pptx,sqlite,sqlite-wal,sqlite-shm}}"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "public": false,
+  "regions": [
+    "dub1"
+  ],
+  "crons": [
+    {
+      "path": "/api/media/cleanup",
+      "schedule": "17 * * * *"
+    }
+  ]
+}

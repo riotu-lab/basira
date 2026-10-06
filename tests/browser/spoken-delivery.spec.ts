@@ -1,0 +1,39 @@
+import {test,expect} from '@playwright/test';
+for(const language of ['ar','en'] as const)test(`${language}: recording measurements, seeking, edit invalidation and reload (synthetic audio, mocked STT/model)`,async({page,request})=>{
+ const ar=language==='ar',bank=await(await request.get('/api/training/questions')).json(),q=bank.questions[0];let transcriptions=0;
+ await page.addInitScript(()=>{
+  navigator.mediaDevices.getUserMedia=async()=>{const c=new AudioContext();await c.resume();const o=c.createOscillator(),g=c.createGain(),d=c.createMediaStreamDestination();g.gain.value=.15;o.connect(g).connect(d);o.start();g.gain.setValueAtTime(0,c.currentTime+2);g.gain.setValueAtTime(.15,c.currentTime+3);setTimeout(()=>void c.close(),15000);return d.stream;};
+ });
+ await page.route('**/api/config',r=>r.fulfill({json:{ai:{configured:true},voice:{configured:false,transcriptionConfigured:true},avatar:{configured:false},languages:['ar','en']}}));
+ await page.route('**/api/transcribe?*',r=>{transcriptions++;return r.fulfill({json:{text:ar?'هذه إجابة صوتية اختبارية تتكون من كلمات لقياس مدة الحديث.':'Um this synthetic answer contains enough words for a rate estimate.'}});});
+ await page.route('**/api/training/assess',r=>r.fulfill({json:{verdict:'partial',spokenFeedback:ar?'مراجعة اختبارية.':'Fixture review.',points:q.points.map((p:any)=>({id:p.id,status:'missing',answerQuote:'',explanation:'Fixture.'}))}}));
+ await page.goto(`/?app=training&lang=${language}`);await page.getByRole('button',{name:ar?'تدريب بأسئلة من المراجع':'Practise questions from sources',exact:true}).click();
+ await page.getByRole('button',{name:ar?'سجّل إجابتك':'Record answer',exact:true}).click();await page.waitForTimeout(7000);
+ await page.getByRole('button',{name:ar?'إنهاء التسجيل ومراجعة النص':'Stop & check transcript',exact:true}).click();
+ const input=page.getByRole('textbox',{name:ar?'إجابتك':'Your answer',exact:true});await expect(input).not.toHaveValue('');
+ const draft=await page.evaluate(()=>JSON.parse(localStorage.getItem('basira.reference-practice.v1')!)[0]);
+ expect(draft.draftSpokenDelivery.status).toBe('measured');expect(draft.draftSpokenDelivery.gaps.length).toBeGreaterThan(0);expect(draft.draftSpokenDelivery.wordsPerMinute).toBeGreaterThan(0);expect(transcriptions).toBe(1);
+ // Correcting the transcript must not claim edited words were spoken.
+ await input.fill((await input.inputValue())+(ar?' تعديل مكتوب.':' Typed correction.'));
+ await page.getByRole('button',{name:ar?'قيّم إجابتي بالمرجع':'Compare my answer with the reference',exact:true}).click();
+ const panel=page.getByRole('region',{name:ar?'ملاحظات التسجيل الصوتي':'Recording delivery observations'});await expect(panel).toBeVisible();
+ await expect(panel).toContainText(ar?'أُخفي معدل الكلمات':'word rate and filler observations are hidden');
+ await expect(panel.locator('audio')).toHaveCount(1);await panel.locator('button').first().click();
+ await expect.poll(()=>panel.locator('audio').evaluate((a:HTMLAudioElement)=>a.currentTime)).toBeGreaterThan(0);
+ await expect.poll(()=>panel.locator('audio').evaluate((a:HTMLAudioElement)=>a.paused)).toBeTruthy();
+ const saved=await page.evaluate(()=>localStorage.getItem('basira.reference-practice.v1')!);expect(saved).not.toContain('blob:');expect(saved).not.toContain('base64');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+ await panel.screenshot({path:`artifacts/screenshots/delivery-${language}-${test.info().project.name}.png`});
+ await panel.getByRole('button',{name:ar?'أعد التسجيل مع التركيز على الوقفات':'Record a retry focused on pauses',exact:true}).click();
+ await expect(page.locator('.reference-focus')).toContainText(ar?'تركيز الإعادة':'Retry focus');
+ const retryDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('basira.reference-practice.v1')!)[0]);expect(retryDraft.focusDelivery).toBe(true);expect(retryDraft.attempts).toHaveLength(1);expect(retryDraft.focusPointId).toBeUndefined();
+ await page.getByRole('button',{name:ar?'سجّل إجابتك':'Record answer',exact:true}).click();await page.waitForTimeout(7000);
+ await page.getByRole('button',{name:ar?'إنهاء التسجيل ومراجعة النص':'Stop & check transcript',exact:true}).click();await expect(input).not.toHaveValue('');
+ await page.getByRole('button',{name:ar?'قيّم إجابتي بالمرجع':'Compare my answer with the reference',exact:true}).click();
+ await expect(panel.getByRole('table')).toBeVisible();
+ await expect(panel.getByRole('table')).toContainText(ar?'الأصلية':'Original');
+ await panel.screenshot({path:`artifacts/screenshots/delivery-comparison-${language}-${test.info().project.name}.png`});
+ await page.reload();await page.getByRole('button',{name:ar?'تدريب بأسئلة من المراجع':'Practise questions from sources',exact:true}).click();await page.locator('.saved-sessions summary').click();await page.getByRole('button',{name:ar?'فتح':'Open',exact:true}).click();
+ await expect(panel.locator('audio')).toHaveCount(0);await expect(panel).toContainText(ar?'القياسات فقط محفوظة':'only measurements are saved');
+ await page.getByRole('button',{name:ar?'حذف':'Delete',exact:true}).click();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('basira.reference-practice.v1')!))).toEqual([]);
+});
