@@ -20,7 +20,11 @@ The last complete automated run passed 460 tests; two deployment-safety regressi
 - Independent specialist review of religious judgments, source editions and permissions remains outstanding. A retrieved passage is not authentication or automatic publication approval.
 - Physical Arabic/English conversations, noisy-room interruptions, dialect/pronunciation quality, concurrent load and provider failure recovery require representative human acceptance.
 - Video analysis samples frames; it is not exhaustive. Provider credits, execution limits and accepted media bounds remain finite.
-- The hosted imported retrieval index and service credentials are not included in this repository. A local checkout needs its own configured services and permitted corpus.
+- Service credentials are not included. A populated local reference index is available as a separate checksummed release download; source permissions remain unresolved. Local avatar/AI use still requires the evaluator’s own provider accounts.
 - Report libraries are device-local; there is no cross-device user-account synchronization.
 
 See [setup](SETUP.md), [acceptance](ACCEPTANCE.md), [architecture](ARCHITECTURE.md), and [source provenance](CONTENT-SOURCE-IDENTITIES.md).
+
+## Local retrieval release
+
+A separate 606 MB Chroma archive provides the 38,742-passage local index without adding it to Git history. The local installer verifies integrity and preserves unrelated secrets. Five offline installer tests, actual archive extraction, local health/authentication and sample-vector retrieval passed. No production deployment or configuration changed; no paid model call was made for these checks. This release does not resolve corpus permissions or establish religious accuracy.
