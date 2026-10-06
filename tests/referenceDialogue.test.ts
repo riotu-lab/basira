@@ -7,8 +7,8 @@ import type {ReferenceTurn} from '../src/referencePracticeTypes';
 const question=questionBank().find(q=>q.status==='draft_requires_human_review')!;
 const history:ReferenceTurn[]=[{id:'q1',role:'assistant',text:question.question.en,pointIds:[question.points[0].id],delivery:'text'},{id:'a1',role:'user',text:'I think this argument needs an example.',pointIds:[question.points[0].id],delivery:'text'}];
 const output=(value:unknown)=>new Response(JSON.stringify({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify((value as any)?.points?{...(value as any),quality:Object.keys(QUALITY_CRITERIA).map(id=>({id,status:'insufficient_evidence',passageIds:[],explanation:'Fixture: insufficient context.',suggestion:''}))}:value)}]}]}));
-it('loads all four exported collections without silently approving draft material',()=>{
- for(const [background,count] of [['hinduism',93],['christianity',94],['atheism',85],['judaism',70]] as const){
+it('loads eligible records from all four collections without silently approving drafts',()=>{
+ for(const [background,count] of [['hinduism',93],['christianity',94],['atheism',84],['judaism',70]] as const){
   const questions=questionBank().filter(q=>q.tradition===background&&q.status==='draft_requires_human_review');
   expect(questions).toHaveLength(count);expect(questions.every(q=>q.evidence?.length&&q.referenceVersion&&q.source.excerpt)).toBe(true);
  }

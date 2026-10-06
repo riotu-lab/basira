@@ -242,3 +242,25 @@
  ::view-transition-group(basira-room),::view-transition-old(basira-room),::view-transition-new(basira-room){animation:none!important}
  .meeting-arrival-orbit,.training-studio .grounded-meeting.is-calling .embedded-video-call{animation:none}
 }
+
+/* Focused retry: one workspace for the question, text and voice answer. */
+.grounded-meeting.is-retry-ready .page-intro,
+.grounded-meeting.is-retry-ready .scenario,
+.grounded-meeting.is-retry-ready .settings > label,
+.grounded-meeting.is-retry-ready .settings > .session-language-field,
+.grounded-meeting.is-retry-ready .settings > .scope-note,
+.grounded-meeting.is-retry-ready .grounded-stage { display:none; }
+.grounded-meeting.is-retry-ready > .reference-focus { margin-block:0 1rem; }
+.grounded-meeting.is-retry-ready > .reference-focus p { margin-block:.4rem 0; font-size:.95rem; font-weight:400; }
+.grounded-meeting.is-retry-ready .conversation-space { min-height:0; }
+.grounded-meeting.is-retry-ready .chat { min-height:0; }
+.grounded-meeting.is-retry-ready .transcript { min-height:9rem; max-height:35vh; }
+
+.avatar-turn-status{position:absolute;inset-inline-start:16px;top:16px;z-index:3;display:flex;align-items:center;gap:12px;max-width:calc(100% - 32px);padding:12px 16px;border:1px solid #d6c78955;border-radius:18px;background:#153d32ed;color:#fff;box-shadow:0 8px 28px #0002;backdrop-filter:blur(12px);pointer-events:none;animation:thought-arrive .28s ease-out}
+.avatar-turn-status strong,.avatar-turn-status small{display:block}.avatar-turn-status strong{font-size:14px;font-weight:500}.avatar-turn-status small{font-size:12px;color:#e3e8dc;margin-top:3px}
+.thought-orbit{position:relative;display:block;flex:0 0 36px;width:36px;height:36px}.thought-orbit i{position:absolute;inset:2px;border:1px solid #dbce9670;border-top-color:#ebd59a;border-radius:50%;animation:thought-orbit 2.8s linear infinite}.thought-orbit i:nth-child(2){inset:7px;animation-direction:reverse;animation-duration:3.6s}.thought-orbit i:nth-child(3){inset:12px;animation-duration:2s}.thought-orbit b{position:absolute;inset:15px;background:#ebd59a;border-radius:50%;box-shadow:0 0 13px #ebd59a80;animation:thought-breathe 1.8s ease-in-out infinite}.avatar-turn-status.settling .thought-orbit i{animation-duration:6s}.avatar-turn-status.delayed .thought-orbit i{animation-duration:4s}
+@keyframes thought-orbit{to{transform:rotate(360deg)}}@keyframes thought-breathe{50%{opacity:.5;transform:scale(.75)}}@keyframes thought-arrive{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.avatar-turn-status,.thought-orbit i,.thought-orbit b{animation:none}}
+@media(max-width:740px){.avatar-turn-status{top:10px;inset-inline-start:10px;padding:9px 11px;gap:9px}.avatar-turn-status strong{font-size:13px}.avatar-turn-status small{font-size:11px}}
+
+.training-studio .grounded-meeting.is-retry-ready > .workspace{grid-template-columns:minmax(0,1fr)}

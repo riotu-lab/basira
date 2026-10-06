@@ -132,3 +132,24 @@ it('persists a background greeting once while preserving the canonical question 
  const retry=await engine.act(token,{id:'greeting-retry',action:'retry',recordId:first.id},signal());
  expect(retry.text).toBe(first.question.question.ar);
 });
+
+it('does not grade the reported thanks-only answer or advance to a different question',async()=>{
+ const {engine,model}=fixture();const {token,session}=await engine.create('ar','atheism');
+ const reply=await engine.act(token,{id:'thanks',action:'answer',text:'صدقت، شكراً لك.'},signal());
+ expect(reply.session.currentId).toBe(session.currentId);expect(reply.text).toBe('');
+ expect(model.referenceFollowup).not.toHaveBeenCalled();
+ const end=await engine.act(token,{id:'end',action:'finish'},signal());
+ expect(model.assessReference).not.toHaveBeenCalled();expect(end.session.records[0].attempts).toHaveLength(0);expect(end.session.ended).toBe(true);
+ expect(end.session.records[0].turns?.at(-1)?.text).toBe('صدقت، شكراً لك.');
+});
+it('still assesses a substantive short answer that begins with thanks',async()=>{
+ const {engine,model}=fixture();const {token}=await engine.create('ar','atheism');
+ await engine.act(token,{id:'answer',action:'finish',text:'شكراً لك. أرى أن الكون له سبب.'},signal());
+ expect(model.assessReference).toHaveBeenCalledTimes(1);
+});
+it('keeps the same question when a follow-up is rejected instead of marking it complete',async()=>{
+ const {engine,model}=fixture();const {token,session}=await engine.create('ar','atheism');
+ model.referenceFollowup.mockResolvedValueOnce({text:'',pointIds:[],readyForReview:false});
+ const r=await engine.act(token,{id:'answer',action:'answer',text:'الكون له سبب.'},signal());
+ expect(r.session.currentId).toBe(session.currentId);expect(r.session.records).toHaveLength(1);expect(model.assessReference).not.toHaveBeenCalled();
+});

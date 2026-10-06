@@ -1,0 +1,27 @@
+import {test,expect} from '@playwright/test';
+import {questionBank} from '../../server/referencePractice';
+import type {TrainingSession} from '../../src/trainingSession';
+for(const lang of ['ar','en'] as const)test(`${lang}: saved review offers text and voice retry without an avatar panel (mocked providers)`,async({page})=>{
+ const ar=lang==='ar',q=questionBank().find(q=>q.tradition==='hinduism')!,answer=ar?'هذه إجابتي الأولى المحفوظة.':'This is my saved original answer.';
+ const turns=[{id:'q',role:'assistant' as const,text:q.question[lang],pointIds:q.points.map(p=>p.id)},{id:'a',role:'user' as const,text:answer,pointIds:q.points.map(p=>p.id)}];
+ const session:TrainingSession={id:'retry-test',language:lang,tradition:'hinduism',revision:1,createdAt:Date.now(),currentId:'record',ended:true,records:[{id:'record',sessionId:'retry-test',language:lang,question:q,completed:true,turns,attempts:[{id:'original',at:Date.now(),answer,turns,assessment:{verdict:'partial',spokenFeedback:answer,points:q.points.map(p=>({id:p.id,status:'missing',answerQuote:'',explanation:'Test explanation.'}))}}]}]};
+ let starts=0,retries=0;
+ await page.addInitScript(()=>{navigator.mediaDevices.getUserMedia=async()=>new MediaStream();});
+ await page.addInitScript(({lang})=>localStorage.setItem('basira.training-meetings.v1:legacy',JSON.stringify([{token:'a'.repeat(64),id:'retry-test',language:lang,tradition:'hinduism',at:Date.now()}])),{lang});
+ await page.route('**/api/config',r=>r.fulfill({json:{training:{configured:true,avatarConfigured:true},ai:{configured:true},voice:{configured:true,transcriptionConfigured:true},avatar:{configured:true},languages:['ar','en'],audit:{enabled:false}}}));
+ await page.route('**/api/training/session/read',r=>r.fulfill({json:session}));
+ await page.route('**/api/training/session/action',async r=>{const body=r.request().postDataJSON();expect(body.action).toBe('retry');retries++;session.ended=false;session.revision++;const record=session.records[0];record.completed=false;record.retrying=true;record.focusPointId=body.focusPointId;record.turns=[turns[0]];return r.fulfill({json:{session,text:q.question[lang]}});});
+ await page.route('**/api/training/video-session',r=>{starts++;return r.fulfill({status:503,json:{error:'avatar_connection_failed'}});});
+ await page.goto(`/?app=training&lang=${lang}`);await page.locator('.saved-sessions > summary').click();await page.getByRole('button',{name:ar?'فتح':'Open',exact:true}).click();
+ await page.getByRole('button',{name:ar?'أعد الإجابة عن السؤال نفسه':'Retry the same question',exact:true}).click();
+ await expect(page.getByText(ar?'محاولتك التالية جاهزة':'Your next attempt is ready',{exact:true})).toBeVisible();
+ await expect(page.getByRole('textbox',{name:ar?'اكتب إجابتك':'Type your answer',exact:true})).toBeEnabled();
+ await expect(page.getByRole('log')).toContainText(q.question[lang]);await expect(page.getByRole('log')).not.toContainText(answer);
+ expect(starts).toBe(0);expect(retries).toBe(1);expect(session.records[0].attempts[0].answer).toBe(answer);
+ await expect(page.locator('.workspace > .sidebar')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:ar?'الاتصال بالشخصية':'Connect avatar',exact:true})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:ar?'سجّل إجابتك':'Record answer',exact:true})).toBeEnabled();
+ await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+ await page.screenshot({path:`artifacts/screenshots/retry-ready-${lang}-${test.info().project.name}.png`,fullPage:true});
+ expect(starts).toBe(0);expect(retries).toBe(1);expect(session.records[0].attempts[0].answer).toBe(answer);
+});

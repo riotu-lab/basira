@@ -153,8 +153,9 @@ export class ModelProvider {
     if(!matchesSchema(check,checkSchema)||!check.reason.trim()||check.reason.length>1600)throw new ApiError('invalid_model_evidence',502);
     if(!check.supported){
       if(check.bindings.length)throw new ApiError('invalid_model_evidence',502);
-      // Never expose rejected wording or score a response to it. The existing completion path saves and advances.
-      return {text:'',pointIds:[],readyForReview:true,grounding:'unsupported',questionId:question.id,referenceVersion:question.referenceVersion};
+      // Failure to ground a follow-up is not evidence that the learner completed this question.
+      // Stay on the current question; the learner may continue or explicitly finish.
+      return {text:'',pointIds:[],readyForReview:false,grounding:'unsupported',questionId:question.id,referenceVersion:question.referenceVersion};
     }
     if(new Set(check.bindings.map((b:any)=>JSON.stringify([b.pointId,b.answerPassageId,b.evidenceId]))).size!==check.bindings.length||check.bindings.length<result.pointIds.length||check.bindings.length>result.pointIds.length*6||result.pointIds.some((id:string)=>!check.bindings.some((b:any)=>b.pointId===id)||check.bindings.filter((b:any)=>b.pointId===id).length>6))throw new ApiError('invalid_model_evidence',502);
     for(const binding of check.bindings){

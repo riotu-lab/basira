@@ -72,6 +72,12 @@ for(const lang of ['ar','en'] as const)for(const ending of ['explicit','disconne
  await page.evaluate(text=>(window as any).emitProviderEvent({event_type:'conversation.utterance.streaming',inference_id:'learner-stream',properties:{role:'user',speech:text,content_index:0,final:false}}),partial);
  await expect(page.locator('.meeting-message.is-streaming')).toContainText(partial);expect(session.records[0].turns).toHaveLength(1);
  await page.screenshot({path:`artifacts/screenshots/streaming-${lang}-${test.info().project.name}.png`,fullPage:true,animations:'disabled'});
+ await page.evaluate(()=>(window as any).emitProviderEvent({event_type:'conversation.stopped_speaking',properties:{role:'user',interrupted:false}}));
+ await expect(page.locator('.avatar-turn-status.thinking')).toBeVisible();
+ await expect(page.locator('.avatar-turn-status')).toContainText(ar?'أفكّر في إجابتك':'Considering your answer');
+ await page.screenshot({path:`artifacts/screenshots/thinking-${lang}-${test.info().project.name}.png`,fullPage:true});
+ await page.evaluate(()=>(window as any).emitProviderEvent({event_type:'conversation.started_speaking',properties:{role:'user'}}));
+ await expect(page.locator('.avatar-turn-status')).toHaveCount(0);
  const finalText=ar?'هذه إجابتي في المكالمة.':'This is my answer in the call.';
  await page.evaluate(text=>(window as any).emitProviderEvent({event_type:'conversation.utterance.streaming',inference_id:'learner-stream',properties:{role:'user',speech:text,content_index:1,final:true}}),finalText);
  await page.getByRole('button',{name:ar?'أصوات الواجهة مفعّلة':'Interface sounds on',exact:true}).click();await expect(page.getByRole('button',{name:ar?'أصوات الواجهة متوقفة':'Interface sounds off',exact:true})).toHaveAttribute('aria-pressed','false');

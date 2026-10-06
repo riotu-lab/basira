@@ -90,7 +90,7 @@ it.each(['ar','en'] as const)('preserves intentional silence in %s JSON and SSE,
   const content=stream?JSON.parse(response.body.split('\n')[0].slice(6)).choices[0].delta.content:response.body.choices[0].message.content;
   expect(content).toBe(ended?(language==='ar'?'انتهى التدريب. يمكنك الآن مراجعة إجاباتك.':'Practice has ended. You can now review your answers.'):'');
  }}finally{read.mockRestore();completion.mockRestore();}
-});
+},12000);
 
 it('retries quotation extraction once without accepting invented words',async()=>{
  const {ModelProvider}=await import('../server/model');

@@ -16,8 +16,8 @@ it('checks the candidate independently with selected criteria, evidence and hist
  const verifier=JSON.parse(request.mock.calls[1][1].body);const context=JSON.parse(verifier.input[0].content);
  expect(context.candidate.text).toBe(candidate.text);expect(context.history).toEqual(turns);expect(context.selectedCriteria).toHaveLength(1);expect(context.evidence[0].quote).toBe(evidence);expect(q.answer.en).toContain(context.answerPassages[0].quote);expect(verifier.instructions).toContain('UNTRUSTED DATA');
 });
-it('rejects unsupported scope without exposing its wording, so the normal progression path can run',async()=>{
- const {result}=invoke({supported:false,reason:'Requires an unrelated source.',bindings:[]});expect(await result).toMatchObject({text:'',pointIds:[],readyForReview:true,grounding:'unsupported'});
+it('rejects unsupported scope without exposing its wording, without advancing or grading the current question',async()=>{
+ const {result}=invoke({supported:false,reason:'Requires an unrelated source.',bindings:[]});expect(await result).toMatchObject({text:'',pointIds:[],readyForReview:false,grounding:'unsupported'});
 });
 it.each([
  {...supported,bindings:[]},

@@ -1,3 +1,4 @@
+import {settleSpokenTurn} from './spokenTurn.js';
 import {MEDIA_MAX_MB,IMAGE_MAX_MB,CONTENT_MAX_SECONDS} from '../src/mediaLimits.js';
 import {RetainedMedia} from './retainedMedia.js';
 import {ContentUploads} from './contentUploads.js';
@@ -129,7 +130,9 @@ export function createApp(env:NodeJS.ProcessEnv=process.env,request:typeof fetch
   app.post('/api/training-llm/chat/completions',endpoint(async(req,res,signal)=>{
     trainingGatewayAuth(req.get('authorization'),env);
     const retry=await protection.consume(trainingToken(req.body.messages),'authenticated-avatar',2);if(retry){res.setHeader('Retry-After',String(retry));res.status(429).json({error:'request_limit',retryAfterSeconds:retry});return;}
-    const token=trainingToken(req.body.messages),session=await trainingStore.get(token);
+    const token=trainingToken(req.body.messages);
+    if(req.body.messages.some((m:any)=>m?.role==='user'&&typeof m.content==='string'&&m.content.trim()))await settleSpokenTurn(signal);
+    const session=await trainingStore.get(token);
     const result=await aiRequestContext.run({...aiRequestContext.getStore(),sessionId:session.id,questionId:currentTrainingRecord(session).question.id},()=>training.completion(token,req.body.messages,signal,trainingCallId(req.body.messages)));
     // Silence is intentional while a learner is still forming their answer.
     const reply=result.text||(result.session.ended?(session.language==='ar'?'انتهى التدريب. يمكنك الآن مراجعة إجاباتك.':'Practice has ended. You can now review your answers.'):'');

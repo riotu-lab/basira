@@ -1,3 +1,4 @@
+import {isSocialAcknowledgment,WITHHELD_TRAINING_QUESTIONS} from '../src/trainingEligibility.js';
 import {trainingOpening} from './trainingOpening.js';
 import {AUDIO_CRITERIA,type AudioCriterion} from '../src/audioAssessment.js';
 import {spokenText} from '../src/providerSpeech.js';
@@ -21,6 +22,7 @@ export class TrainingEngine{
   if(event.action==='retry'){
    if(!s.ended)throw new ApiError('training_end_first',409);
    const target=s.records.find(v=>v.id===event.recordId);if(!target?.completed||!target.attempts.length)throw new ApiError('invalid_transcript');
+   if(WITHHELD_TRAINING_QUESTIONS.has(target.question.id))throw new ApiError('question_not_available',409);
    if(event.focusPointId&&!target.question.points.some(p=>p.id===event.focusPointId))throw new ApiError('invalid_transcript');
    if(event.focusQualityId&&!Object.hasOwn(QUALITY_CRITERIA,event.focusQualityId))throw new ApiError('invalid_transcript');
    if(event.focusAudioCriterion&&!Object.hasOwn(AUDIO_CRITERIA,event.focusAudioCriterion))throw new ApiError('invalid_transcript');
@@ -39,6 +41,9 @@ export class TrainingEngine{
     if(r.exhausted){
      if(event.action==='finish')s.ended=true;
      else{output=s.language==='ar'?'ناقشنا جميع الأسئلة المتاحة لهذا الموضوع. يمكنك إنهاء الحوار ومراجعة إجاباتك عندما تكون مستعدًا.':'We have discussed all available questions for this topic. You can end the discussion and review your answers when you are ready.';if(turns.at(-1)?.role==='user')turns.push({id:randomUUID(),role:'assistant',text:output,pointIds:[],delivery:'uncertain'});}
+    }else if(event.action!=='finish'&&turns.at(-1)?.role==='user'&&isSocialAcknowledgment(turns.at(-1)!.text)){
+     // Thanks/acknowledgments are not theological answers or permission to advance.
+     output='';
     }else if(turns.at(-1)?.role==='user'){
      let followup=event.action==='finish'||turns.length>=24?{readyForReview:true,text:'',pointIds:[]}:await this.retryValidation(()=>this.model.referenceFollowup(s.language,r.question,turns,signal,r.focusPointId),signal);
      // A retry is one focused answer, with at most one substantive clarification.
@@ -54,7 +59,7 @@ export class TrainingEngine{
   delete s.error;s.revision++;s.lastEvent={id:event.id,text:output};s.events=[...(s.events||[]),s.lastEvent].slice(-256);await this.store.put(token,s);return {session:s,text:output};
  });}
  private async retryValidation<T>(work:()=>Promise<T>,signal:AbortSignal):Promise<T>{try{return await work();}catch(e){if(!(e instanceof ApiError)||e.code!=='invalid_model_evidence'||signal.aborted)throw e;return work();}}
- private async assess(s:TrainingSession,r:ReferenceRecord,turns:ReferenceTurn[],signal:AbortSignal){const answer=answerFromTurns(turns),assessment=await this.retryValidation(()=>this.model.assessReference(s.language,r.question,answer,signal,turns),signal);r.attempts.push({id:randomUUID(),at:Date.now(),answer,assessment,turns:structuredClone(turns),focusPointId:r.focusPointId,focusQualityId:r.focusQualityId,focusAudioCriterion:r.focusAudioCriterion});r.completed=true;}
+ private async assess(s:TrainingSession,r:ReferenceRecord,turns:ReferenceTurn[],signal:AbortSignal){const answer=answerFromTurns(turns);if(WITHHELD_TRAINING_QUESTIONS.has(r.question.id)||!turns.some(t=>t.role==='user'&&!isSocialAcknowledgment(t.text)))return;const assessment=await this.retryValidation(()=>this.model.assessReference(s.language,r.question,answer,signal,turns),signal);r.attempts.push({id:randomUUID(),at:Date.now(),answer,assessment,turns:structuredClone(turns),focusPointId:r.focusPointId,focusQualityId:r.focusQualityId,focusAudioCriterion:r.focusAudioCriterion});r.completed=true;}
  async completion(token:string,messages:unknown,signal:AbortSignal,callId:string){
   if(!Array.isArray(messages)||messages.length>100)throw new ApiError('invalid_transcript');
   // Only final user messages can become learner evidence. Ignore perception/system text.

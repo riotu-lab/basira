@@ -1,3 +1,4 @@
+import {WITHHELD_TRAINING_QUESTIONS} from '../src/trainingEligibility.js';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import type {BookQuestion,ReferenceAssessment,ReferenceTurn} from '../src/referencePracticeTypes.js';
@@ -15,7 +16,7 @@ function canonicalBank():BookQuestion[]{
    questions.push({id:q.id,tradition:q.tradition,question:q.question,answer:q.answer,points:q.points,status:q.status,evidence:q.evidence,evidenceMethod:q.evidenceMethod,source:{...q.source,pages:q.evidence.map((e:any)=>e.locator).join(' · '),excerpt:q.evidence.map((e:any)=>e.quote).join('\n\n')}});
   }
  }
- cachedBank=questions.map(q=>({...q,referenceVersion:createHash('sha256').update(JSON.stringify(q)).digest('hex')}));
+ cachedBank=questions.filter(q=>!WITHHELD_TRAINING_QUESTIONS.has(q.id)).map(q=>({...q,referenceVersion:createHash('sha256').update(JSON.stringify(q)).digest('hex')}));
  return cachedBank;
 }
 export function questionBank():BookQuestion[]{return structuredClone(canonicalBank());}
