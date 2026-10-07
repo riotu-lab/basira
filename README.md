@@ -65,20 +65,51 @@ npm run dev
 
 **للتدريب النصي فقط:** اضبط `AI_PROVIDER=openai` وأضف `OPENAI_API_KEY`، واترك `BASIRA_ENV=development` و`TRAINING_STORE=sqlite`، ثم اختر الوضع النصي من إعدادات الحوار. لا تحتاج إلى Tavus أو ngrok أو Redis أو حساب Vercel لهذا المسار. يمكن تشغيل الواجهة والاختبارات الآلية دون مفاتيح؛ لكن وظائف الذكاء الاصطناعي الحية لن تعمل دون الخدمات المطلوبة.
 
-## الخدمات والمفاتيح المطلوبة
+<a id="services-keys-and-expected-costs"></a>
+
+## متطلبات النسخة المحلية الكاملة
+
+لتشغيل **التدريب بالشخصية ومراجعة المحتوى بالمراجع** تحتاج إلى ثلاثة حسابات: **OpenAI وTavus وngrok**، وإلى **قاعدة استرجاع مُعبّأة ومتوافقة**. اختر للاسترجاع **Upstash Vector أو Chroma المحلي**؛ لا تحتاج إليهما معًا.
+
+**لا تحتاج محليًا إلى Vercel أو Vercel Blob أو Upstash Redis.** اترك `BLOB_READ_WRITE_TOKEN` و`UPSTASH_REDIS_REST_URL` و`UPSTASH_REDIS_REST_TOKEN` و`CRON_SECRET` فارغة. تُحفظ جلسات التطوير في SQLite والوسائط المحلية في المتصفح؛ هذه ليست نسخة من خدمات التخزين السحابي للفريق.
 
 | الاستخدام | الخدمة والمفاتيح | الحساب والرصيد |
 | --- | --- | --- |
 | التدريب النصي، تقييم الإجابات، استخراج المحتوى ومعالجة الوسائط | **OpenAI:** `OPENAI_API_KEY` من [صفحة المفاتيح](https://platform.openai.com/api-keys) | يلزم رصيد API أو حصة فوترة متاحة وصلاحية للنماذج المستخدمة. [الفوترة](https://platform.openai.com/settings/organization/billing/overview). التطبيق يستخدم مفتاح API، وليس اشتراك ChatGPT لتسجيل الدخول. |
 | الشخصية الصوتية والمرئية | **Tavus:** `TAVUS_API_KEY` و`TAVUS_FACE_ID` من [بوابة المطوّر](https://platform.tavus.io/)، مع `AVATAR_PROVIDER=tavus` | يلزم توفر شخصية يمكن للحساب استخدامها، ودقائق محادثة، وسعة لجلسة متزامنة. قد تكفي الحصة المجانية لاختبار قصير؛ يلزم رصيد أو خطة مناسبة عند نفادها. [الخطط](https://www.tavus.io/pricing). |
 | ربط Tavus بالخادم المحلي | **ngrok:** `NGROK_AUTHTOKEN` من [صفحة الرمز](https://dashboard.ngrok.com/get-started/your-authtoken) | حساب بخطة مجانية محدودة أو خطة مناسبة للاستخدام. مطلوب للمكالمة المحلية، وليس للتدريب النصي. [الخطط](https://ngrok.com/pricing). |
-| استرجاع مراجع المحتوى | **Upstash Vector:** `UPSTASH_VECTOR_REST_URL` و`UPSTASH_VECTOR_REST_TOKEN` و`UPSTASH_VECTOR_NAMESPACE` من [لوحة التحكم](https://console.upstash.com/) | يلزم فهرس مُعبّأ بالبيانات، بإعدادات Dense / Custom / 3072 / COSINE. الإعداد الحالي يتجاوز حد أبعاد الخطة المجانية؛ يلزم مستوى متوافق أو بديل Chroma المحلي. [الحدود](https://upstash.com/docs/vector/help/faq) · [الخطط](https://upstash.com/pricing/vector). |
-| الجلسات والحماية والسجلات المشتركة في الاستضافة | **Upstash Redis:** `UPSTASH_REDIS_REST_URL` و`UPSTASH_REDIS_REST_TOKEN` من [لوحة التحكم](https://console.upstash.com/) | خطة مجانية ضمن حدودها أو خطة مدفوعة حسب الاستخدام. غير مطلوب للتشغيل المحلي المعتاد الذي يستخدم SQLite. [الخطط](https://upstash.com/pricing/redis). |
-| استضافة نسختك وحفظ الوسائط السحابي المؤقت | **Vercel Blob خاص:** `BLOB_READ_WRITE_TOKEN` من [مشروعك](https://vercel.com/dashboard)، و`CRON_SECRET` للتنظيف المجدول | حدود وتكاليف حسب الخطة والتخزين والنقل. غير مطلوب لبدء التطبيق محليًا. [التكاليف](https://vercel.com/docs/vercel-blob/usage-and-pricing). |
+| استرجاع المراجع — خيار مُدار، بديل Chroma | **Upstash Vector:** `UPSTASH_VECTOR_REST_URL` و`UPSTASH_VECTOR_REST_TOKEN` و`UPSTASH_VECTOR_NAMESPACE` من [لوحة التحكم](https://console.upstash.com/) | يلزم فهرس مُعبّأ بالبيانات، بإعدادات Dense / Custom / 3072 / COSINE. الإعداد الحالي يتجاوز حد أبعاد الخطة المجانية؛ يلزم مستوى متوافق أو بديل Chroma المحلي. [الحدود](https://upstash.com/docs/vector/help/faq) · [الخطط](https://upstash.com/pricing/vector). |
 
 **لتشغيل الشخصية محليًا:** جهّز OpenAI وTavus وngrok، ثم شغّل `npm run dev:avatar` بدل `npm run dev`، واسمح للمتصفح بالميكروفون والكاميرا. يجهّز الأمر `TAVUS_TRAINING_PAL_ID_DEV` و`BASIRA_PUBLIC_URL_DEV` تلقائيًا ويحفظهما محليًا. أبقِ الطرفية مفتوحة. [التفاصيل](docs/SETUP.md#local-development).
 
-**المراجع تحتاج إلى بيانات أيضًا:** فهرس الفريق المستضاف البالغ 38,742 مقطعًا غير مرفق بالمستودع؛ إنشاء قاعدة فارغة أو إضافة مفتاحها لا يعيد نتائج النسخة المنشورة. استخدم مجموعة مسموحًا بإعادة استخدامها وجهّز الفهرس وفق [دليل الاسترجاع](docs/CONTENT-RETRIEVAL.md). أداة الترحيل تحتاج إلى فهرس مصدر موجود، ولا تنزّل مجموعة الفريق. بنك التدريب والنص القرآني المضمّنان موجودان في `data/`.
+**الإعداد المحلي المقترح في `.env`:** احتفظ بالقيم الافتراضية الأخرى في القالب، وأضف قيم حساباتك إلى الحقول التالية. الحقول الفارغة أدناه ليست بيانات جاهزة.
+
+<div dir="ltr">
+
+```dotenv
+AI_PROVIDER=openai
+OPENAI_API_KEY=
+AVATAR_PROVIDER=tavus
+TAVUS_API_KEY=
+TAVUS_FACE_ID=
+NGROK_AUTHTOKEN=
+BASIRA_ENV=development
+TRAINING_STORE=sqlite
+AI_AUDIT_STORE=sqlite
+CONTENT_RETRIEVAL_ENABLED=true
+
+# Choose this only for a populated Upstash Vector index.
+UPSTASH_VECTOR_REST_URL=
+UPSTASH_VECTOR_REST_TOKEN=
+UPSTASH_VECTOR_NAMESPACE=basira-content-v1
+```
+
+</div>
+
+**بديل الاسترجاع المحلي:** إن كان لديك فهرس Chroma متوافق، لا تحتاج إلى حساب Upstash Vector. تحتاج إلى Python 3.12 واعتماديات `services/content-retrieval/requirements.lock`، وتشغيل خدمة الاسترجاع محليًا. اضبط `CONTENT_RAG_URL=http://127.0.0.1:8010` و`CONTENT_RAG_DB_PATH` لمسار الفهرس، وأنشئ `CONTENT_RAG_TOKEN` عشوائيًا من 32 حرفًا على الأقل للخادم والخدمة. هذا سر محلي تنشئه أنت، وليس مفتاح اشتراك. اترك متغيرات Upstash Vector فارغة عند استخدام هذا البديل. [التشغيل التفصيلي](docs/CONTENT-RETRIEVAL.md#alternative-local-chroma-operation).
+
+**متطلب بيانات غير مرفق:** فهرس الفريق ذو 38,742 مقطعًا غير موجود في المستودع. المفاتيح وحدها أو قاعدة فارغة لا تكفي لإعادة تشغيل مراجعة المراجع كاملة. خدمة Chroma الحالية تتوقع مجموعة `islamthon` بهذا العدد وتضمينات من 3,072 بُعدًا؛ ليست أداة استيراد تلقائي لأي مجموعة. يلزم الحصول على فهرس متوافق ومسموح باستخدامه أو تجهيز بيانات وفق بنية الاسترجاع. أداة الترحيل تنقل فهرسًا موجودًا ولا تنزّل مجموعة الفريق. بنك أسئلة التدريب والنص القرآني في `data/` لا يحلّان محل هذا الفهرس. للتجربة المجهّزة دون إعداد البيانات استخدم الرابط المباشر.
+
 
 **إتاحة النماذج:** يستدعي مستخرج العناصر الحالي `gpt-5.6-luna` صراحةً؛ لا يغيّره `OPENAI_MODEL`. يجب أن يتيح حسابك النماذج المطلوبة. تختلف الحصص والخطط وقد تتغير؛ لا ينشئ التطبيق اشتراكًا أو يشتري رصيدًا تلقائيًا.
 
@@ -100,6 +131,6 @@ npm run doctor
 
 المراجعة مساعدة بشرية وليست اعتمادًا دينيًا أو نشرًا تلقائيًا. توثيق طبعات المصادر المستوردة وأذونات استخدامها والتحكيم العلمي ما زال يحتاج إلى استكمال. عدم العثور على دليل لا يثبت خطأ الادعاء. الفيديو يُحلّل عبر عيّنات إطارات، وتظل جودة الصوت في البيئات الفعلية بحاجة إلى تحقق بشري.
 
-الحدود الحالية: النص 20,000 حرف؛ الصورة 30 MiB؛ الصوت والفيديو 200 MiB وخمس دقائق. تتطلب الوسائط الكبيرة في الاستضافة تخزين Blob الخاص. [البنية](docs/ARCHITECTURE.md) · [حالة التنفيذ](docs/STATUS.md) · [إعداد الخدمات](docs/SETUP.md) · [English README](README.en.md).
+الحدود الحالية: النص 20,000 حرف؛ الصورة 30 MiB؛ الصوت والفيديو 200 MiB وخمس دقائق. [البنية](docs/ARCHITECTURE.md) · [حالة التنفيذ](docs/STATUS.md) · [إعداد الخدمات](docs/SETUP.md) · [English README](README.en.md).
 
 </div>

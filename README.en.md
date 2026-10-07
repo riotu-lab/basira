@@ -61,7 +61,13 @@ Open the URL printed by startup (default: **http://localhost:3000**). The landin
 
 Keep credentials server-side. Never commit `.env` or put API keys in browser storage. A fresh checkout does not contain working service credentials or the hosted imported retrieval index. Use your own accounts and a permitted source collection; the live demo runs separately from a local checkout.
 
-### Services, keys, and expected costs
+<a id="services-keys-and-expected-costs"></a>
+
+### Full local setup: services, keys, and data
+
+For **avatar training plus source-backed content review**, provide **OpenAI, Tavus and ngrok accounts**, plus **one populated, compatible retrieval backend: Upstash Vector or local Chroma**. You do not need both retrieval options.
+
+**Local operation does not require Vercel, Vercel Blob or Upstash Redis.** Leave `BLOB_READ_WRITE_TOKEN`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` and `CRON_SECRET` empty. Development sessions/audit use SQLite; local originals remain in browser storage. This does not reproduce the team's optional cloud media storage.
 
 Set keys only in your ignored local `.env`. Account registration alone does not ensure model access, available credits, or sufficient quotas. Plan allowances change; follow the official links before choosing a plan. Basira does not subscribe or purchase credits automatically.
 
@@ -70,17 +76,38 @@ Set keys only in your ignored local `.env`. Account registration alone does not 
 | OpenAI API | Default text training/review; content extraction, image reading, transcription, embeddings and audio coaching | `OPENAI_API_KEY`: [API keys](https://platform.openai.com/api-keys). [Setup](https://developers.openai.com/api/docs/quickstart) / [billing](https://platform.openai.com/settings/organization/billing/overview). | API usage requires available billing quota or applicable credits and access to the requested models. This app uses API keys, not a ChatGPT sign-in/subscription integration. |
 | Tavus | Live avatar voice/video training | `TAVUS_API_KEY`, `TAVUS_FACE_ID`: [developer portal](https://platform.tavus.io/). Set `AVATAR_PROVIDER=tavus`. The development launcher prepares `TAVUS_TRAINING_PAL_ID_DEV` and `BASIRA_PUBLIC_URL_DEV`. | Available conversation minutes and an available concurrent-session slot are required. Limited free-plan allowances may cover a short test; paid use is needed when allowances are exhausted. [Plans](https://www.tavus.io/pricing). |
 | ngrok | Local Tavus callbacks to your own backend; unnecessary for text-only training | `NGROK_AUTHTOKEN`: [account authtoken](https://dashboard.ngrok.com/get-started/your-authtoken). Then run `npm run dev:avatar` instead of `npm run dev`. | A free plan is available with limits; paid features are optional depending on usage. [Plans](https://ngrok.com/pricing). |
-| Upstash Vector | Managed source retrieval for content review | `UPSTASH_VECTOR_REST_URL`, `UPSTASH_VECTOR_REST_TOKEN`, `UPSTASH_VECTOR_NAMESPACE`: [console](https://console.upstash.com/). Dense / Custom / **3,072 dimensions** / COSINE; populate a permitted corpus. | The current 3,072-dimensional setup exceeds the free plan's 1,536-dimensional limit; choose a compatible paid plan, or configure the local Chroma alternative. [Limits](https://upstash.com/docs/vector/help/faq) / [pricing](https://upstash.com/pricing/vector). |
-| Upstash Redis | Shared hosted sessions, protection and audit retention; not needed for ordinary local SQLite operation | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`: [console](https://console.upstash.com/). | Free tier available within its limits; paid usage beyond the chosen allowance. [Plans](https://upstash.com/pricing/redis). |
-| Vercel / private Blob | Hosting and temporary private cloud media; not needed to start the ordinary local app | `BLOB_READ_WRITE_TOKEN`: create/connect a **private** Blob store in your own [Vercel project](https://vercel.com/dashboard). Hosting setup also uses server-side `CRON_SECRET` for cleanup. | Storage, transfer and operations have plan-specific allowances and charges. [Blob pricing](https://vercel.com/docs/vercel-blob/usage-and-pricing). |
+| Upstash Vector, one retrieval option | Managed reference retrieval; alternative to local Chroma | `UPSTASH_VECTOR_REST_URL`, `UPSTASH_VECTOR_REST_TOKEN`, `UPSTASH_VECTOR_NAMESPACE`: [console](https://console.upstash.com/). Dense / Custom / **3,072 dimensions** / COSINE; populate a permitted corpus. | The current 3,072-dimensional setup exceeds the free plan's 1,536-dimensional limit; choose a compatible paid plan, or configure the local Chroma alternative. [Limits](https://upstash.com/docs/vector/help/faq) / [pricing](https://upstash.com/pricing/vector). |
 
-**Content retrieval also needs data, not just keys.** The team's 38,742-passage hosted index and original import archive are not distributed in this repository. An empty Vector index will not reproduce the hosted retrieval results. See [retrieval setup](docs/CONTENT-RETRIEVAL.md) for the expected corpus/schema and local Chroma alternative; use sources you have permission to ingest. The migration script requires an existing source index and does not download the missing corpus. The bundled training Q&A and Quran collection remain available in `data/`.
+**Local `.env` checklist:** keep other template defaults and fill the blank credential fields with your own values.
+
+```dotenv
+AI_PROVIDER=openai
+OPENAI_API_KEY=
+AVATAR_PROVIDER=tavus
+TAVUS_API_KEY=
+TAVUS_FACE_ID=
+NGROK_AUTHTOKEN=
+BASIRA_ENV=development
+TRAINING_STORE=sqlite
+AI_AUDIT_STORE=sqlite
+CONTENT_RETRIEVAL_ENABLED=true
+
+# Choose this only for a populated Upstash Vector index.
+UPSTASH_VECTOR_REST_URL=
+UPSTASH_VECTOR_REST_TOKEN=
+UPSTASH_VECTOR_NAMESPACE=basira-content-v1
+```
+
+**Local retrieval alternative:** with a compatible Chroma index, no Upstash Vector account is needed. Install Python 3.12 and `services/content-retrieval/requirements.lock`, run the local retrieval service, and set `CONTENT_RAG_URL=http://127.0.0.1:8010`, `CONTENT_RAG_DB_PATH` to its index directory, and the same self-generated `CONTENT_RAG_TOKEN` (at least 32 characters) for the backend and service. This token is a local secret, not a paid provider key. Leave both Upstash Vector credentials empty for this option. See [local retrieval instructions](docs/CONTENT-RETRIEVAL.md#alternative-local-chroma-operation).
+
+**Missing data prerequisite:** the team's 38,742-passage retrieval index is not included in the repository. API keys or an empty database cannot reproduce full reference review. The current Chroma service expects a populated `islamthon` collection with 38,742 passages and 3,072-dimensional embeddings; it does not automatically ingest an arbitrary corpus. Obtain a compatible permitted index or prepare data conforming to the retrieval schema. The migration script copies an existing index; it does not download the team's corpus. The bundled training Q&A and Quran data do not replace this index. Use the live demo for the already-configured experience.
+
 
 **Model access matters.** The current tuple extractor explicitly calls `gpt-5.6-luna`; its model selection is not overridden by `OPENAI_MODEL`. Other operations use their documented model settings. A fresh provider account must have access to each requested model; missing access or exhausted quota prevents that feature from completing.
 
 The supported local Tavus route requires a model provider, Tavus credentials and ngrok. Keep its terminal open. Microphone/camera access requires browser permission; closing the launcher stops its owned local backend and tunnel. Legacy `LIVEAVATAR_*`, Echo `TAVUS_PAL_ID`, and general-call `TAVUS_FULL_PAL_ID` settings are **not** prerequisites for the current source-guided training route.
 
-See [.env.example](.env.example), [detailed setup](docs/SETUP.md), [Tavus integration](docs/TAVUS.md), and [hosting setup](docs/VERCEL.md). No Vercel login or deployment is required to run the app locally.
+See [.env.example](.env.example), [detailed setup](docs/SETUP.md), [Tavus integration](docs/TAVUS.md), and [local retrieval setup](docs/CONTENT-RETRIEVAL.md). No Vercel login or deployment is required to run the app locally.
 
 ## Checks
 
@@ -104,7 +131,7 @@ Unit/component tests use mocks and fixtures. Browser and live-provider evidence 
 ## Scope and limitations
 
 - Source matching is not religious approval. The bundled Quran collection covers 6,236 Arabic verses; it does not independently establish hadith authenticity, fiqh rulings, or translation accuracy.
-- Images support originals up to 30 MiB; audio/video clips support up to 200 MiB and five minutes. Text review is bounded at 20,000 characters. Hosted audio/video above 4 MiB requires the private Blob connection. Video uses sampled frames, so visual coverage is partial. Extraction and classification require human inspection.
+- Images support originals up to 30 MiB; audio/video clips support up to 200 MiB and five minutes. Text review is bounded at 20,000 characters. Video uses sampled frames, so visual coverage is partial. Extraction and classification require human inspection.
 - Missing evidence does not establish that a claim is false. Generated training records also require specialist review.
 - Spoken-delivery coaching is qualitative; physical-device, dialect, and noisy-recording quality checks remain necessary.
 - Saved report libraries are browser-local. Training state uses the configured server store; production uses Redis. Hosted original media remain private and available for review for up to seven days, with deletion supported. Server-side AI audit records are separate and may contain submitted text; see [audit storage and privacy](docs/AI-AUDIT.md).
