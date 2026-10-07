@@ -2,6 +2,16 @@
 
 The teammate's Chroma index supplies candidate passages for the extracted four-field items. It does not authenticate a hadith, verify a Quran quote, decide whether reasoning is sound, or issue religious approval. A separate AI judge and focused final report are connected locally and in production. The existing quotation-review action remains available.
 
+## Local database download
+
+The populated team-supplied `islamthon` index is available separately at https://github.com/riotu-lab/basira/releases/tag/retrieval-v1. It is not stored in Git history. Download size: 606,091,926 bytes; allow 3 GiB of free disk during installation. Source notices and unresolved permission/edition status are preserved in the archive; distributing it does not grant a new license or specialist approval.
+
+With Python 3.12, create `.local/rag-venv`, install `services/content-retrieval/requirements.lock`, then run `.local/rag-venv/bin/python scripts/setup/install-local-retrieval.py`. The installer verifies a pinned SHA-256, rejects path traversal/symlinks, refuses to overwrite an index, and saves only local retrieval configuration. Leave Upstash Vector credentials empty to use local Chroma. It never copies or requests the team's API credentials.
+
+Start `.local/rag-venv/bin/python scripts/dev/content-rag.py`; keep it running while Basira runs in another terminal. The current Chroma service expects the named collection with 38,742 records and 3,072-dimensional embeddings. No Upstash, Vercel or Redis account is required for this local retrieval route. OpenAI and Tavus remain external services using the evaluator's own credentials and credits.
+
+Validation covered archive checksum, actual extraction/install, the 38,742-record health response, unauthenticated rejection and retrieving a sample by its existing embedding; no paid requests were made. This is not a new live end-to-end AI judgment test.
+
 ## Data flow
 
 1. Text/image/audio/video extraction produces editable text and structured items.

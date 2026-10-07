@@ -35,7 +35,7 @@ basira/
 
 **لتجربة المنصة المجهّزة، افتحوا [الرابط المباشر](https://basiraapp.vercel.app) دون تثبيت أو إضافة مفاتيح شخصية.** تخضع التجربة لرصيد خدمات الفريق وحدود الجلسات المتزامنة.
 
-**لتشغيل المشروع محليًا، يجب على لجنة التحكيم وضع مفاتيح API الخاصة بها وتهيئة حسابات الخدمات المطلوبة.** المستودع لا يتضمن مفاتيح الفريق أو اشتراكاته أو فهرس الاسترجاع المستضاف. **مفتاح OpenAI وحده لا يشغّل الشخصية المرئية أو مسار استرجاع المراجع كاملًا.**
+**لتشغيل المشروع محليًا، يجب على لجنة التحكيم وضع مفاتيح API الخاصة بها وتهيئة حسابات الخدمات المطلوبة.** المستودع لا يتضمن مفاتيح الفريق أو اشتراكاته. تتوفر قاعدة الاسترجاع كتنزيل منفصل بالإصدار المرتبط أدناه، ولا تُحفظ داخل تاريخ Git. **مفتاح OpenAI وحده لا يشغّل الشخصية المرئية أو مسار استرجاع المراجع كاملًا.**
 
 التشغيل المحلي يستخدم خادمًا محليًا مستقلًا؛ لا يتصل تلقائيًا بخادم الإنتاج ولا يستهلك رصيد الفريق. تغيير متغير البيئة إلى «production» لا يربطه بالنسخة المنشورة.
 
@@ -69,7 +69,7 @@ npm run dev
 
 ## متطلبات النسخة المحلية الكاملة
 
-لتشغيل **التدريب بالشخصية ومراجعة المحتوى بالمراجع** تحتاج إلى ثلاثة حسابات: **OpenAI وTavus وngrok**، وإلى **قاعدة استرجاع مُعبّأة ومتوافقة**. اختر للاسترجاع **Upstash Vector أو Chroma المحلي**؛ لا تحتاج إليهما معًا.
+لتشغيل **التدريب بالشخصية ومراجعة المحتوى بالمراجع** تحتاج إلى ثلاثة حسابات: **OpenAI وTavus وngrok**، وإلى **قاعدة Chroma المحلية المُعبّأة** المتاحة في [إصدار البيانات](https://github.com/riotu-lab/basira/releases/tag/retrieval-v1). لا يلزم حساب Upstash لهذا المسار.
 
 **لا تحتاج محليًا إلى Vercel أو Vercel Blob أو Upstash Redis.** اترك `BLOB_READ_WRITE_TOKEN` و`UPSTASH_REDIS_REST_URL` و`UPSTASH_REDIS_REST_TOKEN` و`CRON_SECRET` فارغة. تُحفظ جلسات التطوير في SQLite والوسائط المحلية في المتصفح؛ هذه ليست نسخة من خدمات التخزين السحابي للفريق.
 
@@ -78,7 +78,6 @@ npm run dev
 | التدريب النصي، تقييم الإجابات، استخراج المحتوى ومعالجة الوسائط | **OpenAI:** `OPENAI_API_KEY` من [صفحة المفاتيح](https://platform.openai.com/api-keys) | يلزم رصيد API أو حصة فوترة متاحة وصلاحية للنماذج المستخدمة. [الفوترة](https://platform.openai.com/settings/organization/billing/overview). التطبيق يستخدم مفتاح API، وليس اشتراك ChatGPT لتسجيل الدخول. |
 | الشخصية الصوتية والمرئية | **Tavus:** `TAVUS_API_KEY` و`TAVUS_FACE_ID` من [بوابة المطوّر](https://platform.tavus.io/)، مع `AVATAR_PROVIDER=tavus` | يلزم توفر شخصية يمكن للحساب استخدامها، ودقائق محادثة، وسعة لجلسة متزامنة. قد تكفي الحصة المجانية لاختبار قصير؛ يلزم رصيد أو خطة مناسبة عند نفادها. [الخطط](https://www.tavus.io/pricing). |
 | ربط Tavus بالخادم المحلي | **ngrok:** `NGROK_AUTHTOKEN` من [صفحة الرمز](https://dashboard.ngrok.com/get-started/your-authtoken) | حساب بخطة مجانية محدودة أو خطة مناسبة للاستخدام. مطلوب للمكالمة المحلية، وليس للتدريب النصي. [الخطط](https://ngrok.com/pricing). |
-| استرجاع المراجع — خيار مُدار، بديل Chroma | **Upstash Vector:** `UPSTASH_VECTOR_REST_URL` و`UPSTASH_VECTOR_REST_TOKEN` و`UPSTASH_VECTOR_NAMESPACE` من [لوحة التحكم](https://console.upstash.com/) | يلزم فهرس مُعبّأ بالبيانات، بإعدادات Dense / Custom / 3072 / COSINE. الإعداد الحالي يتجاوز حد أبعاد الخطة المجانية؛ يلزم مستوى متوافق أو بديل Chroma المحلي. [الحدود](https://upstash.com/docs/vector/help/faq) · [الخطط](https://upstash.com/pricing/vector). |
 
 **لتشغيل الشخصية محليًا:** جهّز OpenAI وTavus وngrok، ثم شغّل `npm run dev:avatar` بدل `npm run dev`، واسمح للمتصفح بالميكروفون والكاميرا. يجهّز الأمر `TAVUS_TRAINING_PAL_ID_DEV` و`BASIRA_PUBLIC_URL_DEV` تلقائيًا ويحفظهما محليًا. أبقِ الطرفية مفتوحة. [التفاصيل](docs/SETUP.md#local-development).
 
@@ -98,17 +97,31 @@ TRAINING_STORE=sqlite
 AI_AUDIT_STORE=sqlite
 CONTENT_RETRIEVAL_ENABLED=true
 
-# Choose this only for a populated Upstash Vector index.
+# Leave managed database credentials empty for local Chroma.
 UPSTASH_VECTOR_REST_URL=
 UPSTASH_VECTOR_REST_TOKEN=
-UPSTASH_VECTOR_NAMESPACE=basira-content-v1
 ```
 
 </div>
 
-**بديل الاسترجاع المحلي:** إن كان لديك فهرس Chroma متوافق، لا تحتاج إلى حساب Upstash Vector. تحتاج إلى Python 3.12 واعتماديات `services/content-retrieval/requirements.lock`، وتشغيل خدمة الاسترجاع محليًا. اضبط `CONTENT_RAG_URL=http://127.0.0.1:8010` و`CONTENT_RAG_DB_PATH` لمسار الفهرس، وأنشئ `CONTENT_RAG_TOKEN` عشوائيًا من 32 حرفًا على الأقل للخادم والخدمة. هذا سر محلي تنشئه أنت، وليس مفتاح اشتراك. اترك متغيرات Upstash Vector فارغة عند استخدام هذا البديل. [التشغيل التفصيلي](docs/CONTENT-RETRIEVAL.md#alternative-local-chroma-operation).
+### تثبيت قاعدة المراجع محليًا
 
-**متطلب بيانات غير مرفق:** فهرس الفريق ذو 38,742 مقطعًا غير موجود في المستودع. المفاتيح وحدها أو قاعدة فارغة لا تكفي لإعادة تشغيل مراجعة المراجع كاملة. خدمة Chroma الحالية تتوقع مجموعة `islamthon` بهذا العدد وتضمينات من 3,072 بُعدًا؛ ليست أداة استيراد تلقائي لأي مجموعة. يلزم الحصول على فهرس متوافق ومسموح باستخدامه أو تجهيز بيانات وفق بنية الاسترجاع. أداة الترحيل تنقل فهرسًا موجودًا ولا تنزّل مجموعة الفريق. بنك أسئلة التدريب والنص القرآني في `data/` لا يحلّان محل هذا الفهرس. للتجربة المجهّزة دون إعداد البيانات استخدم الرابط المباشر.
+حمّل الفهرس عبر أداة الإعداد التالية؛ **لا تحتاج إلى Upstash Vector أو Redis**. المتطلبات: Python 3.12 ومساحة فارغة لا تقل عن 3 GiB. حجم التنزيل نحو 606 MB، وقاعدة البيانات بعد فك الضغط نحو 1.03 GB. الأوامر لـ Linux أو macOS؛ على Windows استخدم WSL.
+
+<div dir="ltr">
+
+```bash
+python3.12 -m venv .local/rag-venv
+.local/rag-venv/bin/python -m pip install -r services/content-retrieval/requirements.lock
+.local/rag-venv/bin/python scripts/setup/install-local-retrieval.py
+.local/rag-venv/bin/python scripts/dev/content-rag.py
+```
+
+</div>
+
+أداة التثبيت تتحقق من بصمة SHA-256، وترفض استبدال قاعدة موجودة، وتضبط `CONTENT_RAG_URL` و`CONTENT_RAG_DB_PATH` و`CONTENT_RAG_TOKEN` في `.env` دون عرض مفاتيحك أو تغييرها. تنشئ رمز حماية محليًا للخدمة؛ **ليس مفتاح اشتراك**. اترك خدمة الاسترجاع مفتوحة، ثم شغّل `npm run dev:avatar` في طرفية ثانية بعد إضافة مفاتيح OpenAI وTavus وngrok. للتدريب النصي استخدم `npm run dev` بدلًا منه.
+
+يمكن تنزيل الملف يدويًا من [إصدار البيانات](https://github.com/riotu-lab/basira/releases/tag/retrieval-v1)، ثم تمريره للأداة عبر `--archive /path/to/basira-retrieval-v1.tar.gz`. تتضمن القاعدة 38,742 مقطعًا ضمن `islamthon`. **لم تُحسم أذونات إعادة توزيع المجموعة وطبعاتها؛ يتضمن الإصدار إشعار المصدر وحدود التوثيق، ولا يمنح ترخيصًا جديدًا.** [التفاصيل](docs/CONTENT-RETRIEVAL.md#local-database-download).
 
 
 **إتاحة النماذج:** يستدعي مستخرج العناصر الحالي `gpt-5.6-luna` صراحةً؛ لا يغيّره `OPENAI_MODEL`. يجب أن يتيح حسابك النماذج المطلوبة. تختلف الحصص والخطط وقد تتغير؛ لا ينشئ التطبيق اشتراكًا أو يشتري رصيدًا تلقائيًا.

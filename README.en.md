@@ -12,7 +12,7 @@ Bilingual dialogue training and pre-publication content review, built by the RIO
 
 **To try the full configured experience, open [the live demo](https://basiraapp.vercel.app).** No installation or personal API keys are required; demo availability remains subject to the team's provider credits and concurrent-session limits. [Watch the recorded walkthrough](https://www.youtube.com/watch?v=dRobDNQ9dP0).
 
-**Judges running locally must supply their own API keys and service accounts.** The repository does not include the team’s keys, subscriptions, or hosted retrieval index. An OpenAI key alone does not enable the Tavus avatar or complete source retrieval.
+**Judges running locally must supply their own API keys and service accounts.** The repository does not include the team’s keys or subscriptions. A populated local retrieval database is provided as a separate release download, outside Git history. An OpenAI key alone does not enable the Tavus avatar or complete source retrieval.
 
 **To inspect or run the code, use the local setup below.** The app starts without credentials, but live AI actions require the relevant services. A local checkout runs its own backend: it does **not** silently use the team's production API, accounts, storage, or credits. Changing `NODE_ENV` or `BASIRA_ENV` to production is not a way to connect to the live demo.
 
@@ -59,13 +59,13 @@ For **local text training**, set `AI_PROVIDER=openai` and `OPENAI_API_KEY` in `.
 
 Open the URL printed by startup (default: **http://localhost:3000**). The landing page links to both workflows; direct routes are `/?app=training` and `/?app=content`. Add `&lang=en` for English.
 
-Keep credentials server-side. Never commit `.env` or put API keys in browser storage. A fresh checkout does not contain working service credentials or the hosted imported retrieval index. Use your own accounts and a permitted source collection; the live demo runs separately from a local checkout.
+Keep credentials server-side. Never commit `.env` or put API keys in browser storage. A fresh checkout does not contain working service credentials; download the local index using the instructions below. Use your own accounts and a permitted source collection; the live demo runs separately from a local checkout.
 
 <a id="services-keys-and-expected-costs"></a>
 
 ### Full local setup: services, keys, and data
 
-For **avatar training plus source-backed content review**, provide **OpenAI, Tavus and ngrok accounts**, plus **one populated, compatible retrieval backend: Upstash Vector or local Chroma**. You do not need both retrieval options.
+For **avatar training plus source-backed content review**, provide **OpenAI, Tavus and ngrok accounts**, plus **the populated local Chroma database** from the [data release](https://github.com/riotu-lab/basira/releases/tag/retrieval-v1). No Upstash account is needed for this route.
 
 **Local operation does not require Vercel, Vercel Blob or Upstash Redis.** Leave `BLOB_READ_WRITE_TOKEN`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` and `CRON_SECRET` empty. Development sessions/audit use SQLite; local originals remain in browser storage. This does not reproduce the team's optional cloud media storage.
 
@@ -76,7 +76,6 @@ Set keys only in your ignored local `.env`. Account registration alone does not 
 | OpenAI API | Default text training/review; content extraction, image reading, transcription, embeddings and audio coaching | `OPENAI_API_KEY`: [API keys](https://platform.openai.com/api-keys). [Setup](https://developers.openai.com/api/docs/quickstart) / [billing](https://platform.openai.com/settings/organization/billing/overview). | API usage requires available billing quota or applicable credits and access to the requested models. This app uses API keys, not a ChatGPT sign-in/subscription integration. |
 | Tavus | Live avatar voice/video training | `TAVUS_API_KEY`, `TAVUS_FACE_ID`: [developer portal](https://platform.tavus.io/). Set `AVATAR_PROVIDER=tavus`. The development launcher prepares `TAVUS_TRAINING_PAL_ID_DEV` and `BASIRA_PUBLIC_URL_DEV`. | Available conversation minutes and an available concurrent-session slot are required. Limited free-plan allowances may cover a short test; paid use is needed when allowances are exhausted. [Plans](https://www.tavus.io/pricing). |
 | ngrok | Local Tavus callbacks to your own backend; unnecessary for text-only training | `NGROK_AUTHTOKEN`: [account authtoken](https://dashboard.ngrok.com/get-started/your-authtoken). Then run `npm run dev:avatar` instead of `npm run dev`. | A free plan is available with limits; paid features are optional depending on usage. [Plans](https://ngrok.com/pricing). |
-| Upstash Vector, one retrieval option | Managed reference retrieval; alternative to local Chroma | `UPSTASH_VECTOR_REST_URL`, `UPSTASH_VECTOR_REST_TOKEN`, `UPSTASH_VECTOR_NAMESPACE`: [console](https://console.upstash.com/). Dense / Custom / **3,072 dimensions** / COSINE; populate a permitted corpus. | The current 3,072-dimensional setup exceeds the free plan's 1,536-dimensional limit; choose a compatible paid plan, or configure the local Chroma alternative. [Limits](https://upstash.com/docs/vector/help/faq) / [pricing](https://upstash.com/pricing/vector). |
 
 **Local `.env` checklist:** keep other template defaults and fill the blank credential fields with your own values.
 
@@ -92,15 +91,25 @@ TRAINING_STORE=sqlite
 AI_AUDIT_STORE=sqlite
 CONTENT_RETRIEVAL_ENABLED=true
 
-# Choose this only for a populated Upstash Vector index.
+# Leave managed database credentials empty for local Chroma.
 UPSTASH_VECTOR_REST_URL=
 UPSTASH_VECTOR_REST_TOKEN=
-UPSTASH_VECTOR_NAMESPACE=basira-content-v1
 ```
 
-**Local retrieval alternative:** with a compatible Chroma index, no Upstash Vector account is needed. Install Python 3.12 and `services/content-retrieval/requirements.lock`, run the local retrieval service, and set `CONTENT_RAG_URL=http://127.0.0.1:8010`, `CONTENT_RAG_DB_PATH` to its index directory, and the same self-generated `CONTENT_RAG_TOKEN` (at least 32 characters) for the backend and service. This token is a local secret, not a paid provider key. Leave both Upstash Vector credentials empty for this option. See [local retrieval instructions](docs/CONTENT-RETRIEVAL.md#alternative-local-chroma-operation).
+### Install the populated local reference database
 
-**Missing data prerequisite:** the team's 38,742-passage retrieval index is not included in the repository. API keys or an empty database cannot reproduce full reference review. The current Chroma service expects a populated `islamthon` collection with 38,742 passages and 3,072-dimensional embeddings; it does not automatically ingest an arbitrary corpus. Obtain a compatible permitted index or prepare data conforming to the retrieval schema. The migration script copies an existing index; it does not download the team's corpus. The bundled training Q&A and Quran data do not replace this index. Use the live demo for the already-configured experience.
+Use Python 3.12 and keep at least 3 GiB of disk space free. The download is about 606 MB; the installed database is about 1.03 GB. Commands below target Linux/macOS; use WSL on Windows.
+
+```bash
+python3.12 -m venv .local/rag-venv
+.local/rag-venv/bin/python -m pip install -r services/content-retrieval/requirements.lock
+.local/rag-venv/bin/python scripts/setup/install-local-retrieval.py
+.local/rag-venv/bin/python scripts/dev/content-rag.py
+```
+
+The installer verifies the pinned SHA-256 checksum, refuses to overwrite an existing index, and configures `CONTENT_RAG_URL`, `CONTENT_RAG_DB_PATH` and a locally generated `CONTENT_RAG_TOKEN` in `.env` without displaying or changing other credentials. This token is a local service secret, not a paid provider key. Keep the retrieval terminal open, then run `npm run dev:avatar` in another terminal after adding your own OpenAI/Tavus/ngrok credentials. Use `npm run dev` instead for text-only training.
+
+For a manual download, obtain the archive from the [data release](https://github.com/riotu-lab/basira/releases/tag/retrieval-v1), then pass `--archive /path/to/basira-retrieval-v1.tar.gz` to the installer. The index contains 38,742 `islamthon` passages. **Redistribution permissions and exact editions remain unverified; the release preserves source notices and grants no new license.** See [retrieval details](docs/CONTENT-RETRIEVAL.md#local-database-download).
 
 
 **Model access matters.** The current tuple extractor explicitly calls `gpt-5.6-luna`; its model selection is not overridden by `OPENAI_MODEL`. Other operations use their documented model settings. A fresh provider account must have access to each requested model; missing access or exhausted quota prevents that feature from completing.
